@@ -1,13 +1,6 @@
-Identity by Kjallstrom
+Identity by Kjallstrom (ultranurd@yahoo.com)
 Guild: Mellonea
 Server: Kirin Tor
-
----
-
-Original IDENTITY by Ferusnox
-Guild: Heaven and Earth
-Server: Cenarion Circle
-"Just call me Nox"
 
 ---
 
@@ -66,7 +59,42 @@ format [<format>]
 Sets the string used to display your Identity. The default is [%s],
 where %s is replaced by the current name information. The default can
 be restored by specifying no format string. All format strings must
-contain %s, which will be replaced by your Identity.
+contain %s, which will be replaced by your Identity. Recommended for
+advanced users only.
 
 reset
 Clears your character's Identity settings.
+
+---
+
+Known Bugs
+
+2.0-20003
+
+Trying to use more than one %s in the format string, or trying to use
+% characters on their own, might cause problems, depending on how many
+are in the format string.
+
+---
+
+Version History
+
+2.0-20003
+
+Near-complete rewrite of the original identity, with an emphasis on
+greater configurability. My original motivations were:
+
+1) My guild splits /g and /o into in-character and out-of-character
+   channels, because we play on an RP server.
+2) I wanted to use [Name] instead of (Name):.
+3) I wanted to be able to change settings on individual numbered
+   channels.
+
+I believe all of that has been achieved. Comments welcome!
+
+---
+
+Original IDENTITY by Ferusnox
+Guild: Heaven and Earth
+Server: Cenarion Circle
+"Just call me Nox"
