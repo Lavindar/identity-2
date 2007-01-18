@@ -20,22 +20,22 @@ All options are configured on a per-character basis.
 
 Slash Commands:
 
-/id
-/identity
-
-Subcommands:
-
-/id <subcommand> [<options>]
+/id <command> [<options>]
+/identity <command> [<options>]
 
 help
-Displays this help text. Default subcommand.
+Displays this help text.
+
+config
+Prints the current Identity configuration. Default subcommand.
 
 off
-Turns Identity off, but all settings are preserved. No labels will be sent.
+Turns Identity off, but all settings are preserved. No labels will be
+sent. Identity is turned on by default.
 
 on
 Turns Identity on, using the currently stored settings. Configured
-labels will be sent.
+labels will be sent. Identity is turned on by default.
 
 main [<name>]
 Sets the main character's Identity. This is the name used for all
@@ -60,10 +60,13 @@ disable <channel> [...]
 Disables Identity for the specified space-separated channels.
 
 zone on|off
-Adds zone information to your Identity.
+Sets whether zone information should be added to your Identity.
 
 format [<format>]
 Sets the string used to display your Identity. The default is [%s],
 where %s is replaced by the current name information. The default can
 be restored by specifying no format string. All format strings must
 contain %s, which will be replaced by your Identity.
+
+reset
+Clears your character's Identity settings.

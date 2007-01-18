@@ -6,5 +6,5 @@
 ## OptionalDeps:
 ## Dependencies:
 ## SavedVariables:
-## SavedVariablesPerCharacter:IdentityEnabled,FormatString,MainName,NickName,Channels,ZoneEnabled
+## SavedVariablesPerCharacter:IdentitySettings
 Identity.xml

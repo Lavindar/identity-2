@@ -1,242 +1,278 @@
 -- Identity Addon
+-- Heavily modified by Kjallstrom, Mellonea, Kirin Tor
 -- Created by Ferusnox, Heaven and Earth, Cenarion Circle
 -- Inspired by Thelma Incognito Addon
 
-local Identity_VERSION = "11200-1";
+-- Sets the current Identity version
+local Identity_VERSION = "2.0-20003";
+
+-- Stores the unmodified chat message
 local Identity_OrginalSendChatMessage;
 
--- LETS BEGIN
-
+-- Called when Identity is loaded at UI loadtime
 function Identity_OnLoad()
-	this:RegisterEvent("VARIABLES_LOADED");
+    -- Prepare to read saved variables
+    this:RegisterEvent("VARIABLES_LOADED");
 
--- ADDON COMMANDS
-
-	SlashCmdList["IDENTITY"] = Identity_Cmd;
-	SLASH_IDENTITY1 = "/Identity";
-	SLASH_IDENTITY2 = "/ID";
-
-	SlashCmdList["IDMAIN"] = IDMain_Cmd;
-	SLASH_IDMAIN1 = "/IDMain";
-
-	SlashCmdList["IDNICK"] = IDNick_Cmd;
-	SLASH_IDNICK1 = "/IDNick";
-
-	SlashCmdList["IDRESET"] = IDReset_Cmd;
-	SLASH_IDRESET1 = "/IDReset";
-	SLASH_IDRESET2 = "/IDClear";
-
-	SlashCmdList["IDTELL"] = IDTell_Cmd;
-	SLASH_IDTELL1 = "/IDTell";
-	SLASH_IDTELL2 = "/IDWhisper";
-	
-	SlashCmdList["IDCHAN"] = IDChan_Cmd;
-	SLASH_IDCHAN1 = "/IDChannel";
-	SLASH_IDCHAN2 = "/IDChan";
-
-	SlashCmdList["IDZONE"] = IDZone_Cmd;
-	SLASH_IDZONE1 = "/IDZone";
+    -- Register slash commands
+    SlashCmdList["IDENTITY"] = Identity_Cmd;
+    SLASH_IDENTITY1 = "/identity";
+    SLASH_IDENTITY2 = "/id";
 end
 
--- CREATE VARIABLES ON FIRST LOAD
-
+-- Handle the variable load event
 function Identity_OnEvent()
-	if (event == "VARIABLES_LOADED") then
-		if (IdentityEnabled == nil) then
-		IdentityEnabled = "true";
-		end
-
-		if (MainName == nil) then
-		MainName = "";
-		end
-
-		if (NickName == nil) then
-		NickName = "";
-		end
-
-		if (TellEnabled == nil) then
-		TellEnabled = "false";
-		end
-		
-		if (ChanEnabled == nil) then
-		ChanEnabled = "false";
+    if (event == "VARIABLES_LOADED") then
+        -- Check if this is the first time Identity has been loaded
+        if (not IdentitySettings) then
+	    -- Set the defaults
+	    Identity_InitSettings();
         end
 
-		if (ZoneEnabled == nil) then
-		ZoneEnabled = "false";
-		end
-	Identity_Init();
-	end
+        -- Indicate that Identity is done loading
+        DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_VERSION .. " loaded.", 0.4, 0.4, 1.0);
+
+        -- Intercept chat events
+        --Identity_OrginalSendChatMessage = SendChatMessage;
+        --SendChatMessage = Identity_SendChatMessage;
+    end
 end
 
--- INDICATE THAT ADDON IS LOADED
-function Identity_Init()
-	DEFAULT_CHAT_FRAME:AddMessage("Identity "..Identity_VERSION.." loaded." ,0.4, 0.4, 1.0);
-	DEFAULT_CHAT_FRAME:AddMessage("/Identity help" ,0.4, 0.4, 1.0);
-
--- HOOK TO CHAT EVENTS
-	Identity_OrginalSendChatMessage = SendChatMessage;
-	SendChatMessage = Identity_SendChatMessage;
+-- Create a fresh, default Identity configuration
+function Identity_InitSettings()
+    IdentitySettings = {};
+    IdentitySettings.Enabled = true;
+    IdentitySettings.Format = "[%s]";
+    IdentitySettings.MainName = "";
+    IdentitySettings.NickName = "";
+    IdentitySettings.DisplayZone = false;
+    IdentitySettings.Channels = {};
+    IdentitySettings.Channels.Guild = false;
+    IdentitySettings.Channels.Officer = false;
+    IdentitySettings.Channels.Raid = false;
+    IdentitySettings.Channels.Party = false;
+    IdentitySettings.Channels.Tell = false;
+    IdentitySettings.Channels.C01 = false;
+    IdentitySettings.Channels.C02 = false;
+    IdentitySettings.Channels.C03 = false;
+    IdentitySettings.Channels.C04 = false;
+    IdentitySettings.Channels.C05 = false;
+    IdentitySettings.Channels.C06 = false;
+    IdentitySettings.Channels.C07 = false;
+    IdentitySettings.Channels.C08 = false;
+    IdentitySettings.Channels.C09 = false;
+    IdentitySettings.Channels.C10 = false;
 end
 
-function Identity_SendChatMessage(msg,system,language,channel)
+function Identity_SendChatMessage(msg, system, language, channel)
 
 -- DEFAULT_CHAT_FRAME:AddMessage(system..channel, 0.4, 0.4, 1.0);
 
 -- IF THEN ADD NAME
 
-	if (system == "GUILD" or system == "OFFICER" or system == "WHISPER" or system == "RAID" or system == "PARTY" or system == "CHANNEL") then
+    if (system == "GUILD" or system == "OFFICER" or system == "WHISPER" or system == "RAID" or system == "PARTY" or system == "CHANNEL") then
 
-		if (system == "GUILD" or system == "OFFICER") then
-			if (IdentityEnabled == "false" or MainName == "" or UnitName("player") == MainName) then
-			Identity_OrginalSendChatMessage(msg,system,language,channel)
-			else
-			Identity_OrginalSendChatMessage("("..MainName.."): "..msg,system,language,channel)
-			end
-		end
+        if (system == "GUILD" or system == "OFFICER") then
+            if (IdentityEnabled == "false" or MainName == "" or UnitName("player") == MainName) then
+            Identity_OrginalSendChatMessage(msg,system,language,channel)
+            else
+            Identity_OrginalSendChatMessage("("..MainName.."): "..msg,system,language,channel)
+            end
+        end
 
-		if (system == "CHANNEL") then
-			if (IdentityEnabled == "false") then
-			Identity_OrginalSendChatMessage(msg,system,language,channel)
-			else
-				if (MainName == "" or UnitName("player") == MainName or ChanEnabled == "false") then
-					if (ZoneEnabled == "false") then
-					Identity_OrginalSendChatMessage(msg,system,language,channel)
-					else
-					local zonetext = GetZoneText();
-					Identity_OrginalSendChatMessage("["..zonetext.."]: "..msg,system,language,channel)
-					end
-				else
-					if (ZoneEnabled == "false") then
-					Identity_OrginalSendChatMessage("("..MainName.."): "..msg,system,language,channel)
-					else
-					local zonetext = GetZoneText();
-					Identity_OrginalSendChatMessage("("..MainName..") ["..zonetext.."]: "..msg,system,language,channel)
-					end
-				end
-			end 
-		end
-		
-		if (system == "WHISPER") then
-			if (IdentityEnabled == "false" or MainName == "" or UnitName("player") == MainName or TellEnabled == "false") then
-			Identity_OrginalSendChatMessage(msg,system,language,channel)
-			else
-			Identity_OrginalSendChatMessage("(Main: "..MainName.."): "..msg,system,language,channel)
-			end
-		end
+        if (system == "CHANNEL") then
+            if (IdentityEnabled == "false") then
+            Identity_OrginalSendChatMessage(msg,system,language,channel)
+            else
+                if (MainName == "" or UnitName("player") == MainName or ChanEnabled == "false") then
+                    if (ZoneEnabled == "false") then
+                    Identity_OrginalSendChatMessage(msg,system,language,channel)
+                    else
+                    local zonetext = GetZoneText();
+                    Identity_OrginalSendChatMessage("["..zonetext.."]: "..msg,system,language,channel)
+                    end
+                else
+                    if (ZoneEnabled == "false") then
+                    Identity_OrginalSendChatMessage("("..MainName.."): "..msg,system,language,channel)
+                    else
+                    local zonetext = GetZoneText();
+                    Identity_OrginalSendChatMessage("("..MainName..") ["..zonetext.."]: "..msg,system,language,channel)
+                    end
+                end
+            end 
+        end
+        
+        if (system == "WHISPER") then
+            if (IdentityEnabled == "false" or MainName == "" or UnitName("player") == MainName or TellEnabled == "false") then
+            Identity_OrginalSendChatMessage(msg,system,language,channel)
+            else
+            Identity_OrginalSendChatMessage("(Main: "..MainName.."): "..msg,system,language,channel)
+            end
+        end
 
-		if (system == "PARTY") then
-			if (IdentityEnabled == "false" or NickName == "") then
-			Identity_OrginalSendChatMessage(msg,system,language,channel)
-			else
-			Identity_OrginalSendChatMessage("("..NickName.."): "..msg,system,language,channel)
-			end
-		end
+        if (system == "PARTY") then
+            if (IdentityEnabled == "false" or NickName == "") then
+            Identity_OrginalSendChatMessage(msg,system,language,channel)
+            else
+            Identity_OrginalSendChatMessage("("..NickName.."): "..msg,system,language,channel)
+            end
+        end
 
-		if (system == "RAID") then
-			if (IdentityEnabled == "false" or NickName == "") then
-			Identity_OrginalSendChatMessage(msg,system,language,channel)
-			else
-			Identity_OrginalSendChatMessage("("..NickName.."): "..msg,system,language,channel)
-			end
-		end
-	else
-	Identity_OrginalSendChatMessage(msg,system,language,channel)
-	end
+        if (system == "RAID") then
+            if (IdentityEnabled == "false" or NickName == "") then
+            Identity_OrginalSendChatMessage(msg,system,language,channel)
+            else
+            Identity_OrginalSendChatMessage("("..NickName.."): "..msg,system,language,channel)
+            end
+        end
+    else
+    Identity_OrginalSendChatMessage(msg,system,language,channel)
+    end
 end
 
-
--- COMMAND FUNCTIONS
-
+-- Handle Identity commands
 function Identity_Cmd(msg)
+    -- Extract the command and arguments from the message
+    local Cmd, Options = Identity_ParseCmd(msg);
 
-	if(string.len(msg) == 0 or msg == "help") then
-	DEFAULT_CHAT_FRAME:AddMessage("Identity ver "..Identity_VERSION.." - Main Name: "..MainName.." - Enabled: "..IdentityEnabled, 0.4, 0.4, 1.0);
-	DEFAULT_CHAT_FRAME:AddMessage("=== Identity Help ===", 0.4, 0.4, 1.0);
-	DEFAULT_CHAT_FRAME:AddMessage("/Identity or /ID - ID Help", 0.4, 0.4, 1.0);
-	DEFAULT_CHAT_FRAME:AddMessage("/Identity on / off - turns all ID features on or off", 0.4, 0.4, 1.0);
-	DEFAULT_CHAT_FRAME:AddMessage("/IDReset - resets ID Names", 0.4, 0.4, 1.0);
-	DEFAULT_CHAT_FRAME:AddMessage("/IDMain <Main name> - sets your mains name", 0.4, 0.4, 1.0);
-	DEFAULT_CHAT_FRAME:AddMessage("/IDNick <Nickname> sets your nick name for party & raids", 0.4, 0.4, 1.0);
-	DEFAULT_CHAT_FRAME:AddMessage("/IDTell on / off - turns ID on & off in tell/whisper chats", 0.4, 0.4, 1.0);
-	DEFAULT_CHAT_FRAME:AddMessage("/IDChan or /IDChannel on / off uses MainName in Channels 1 - 10", 0.4, 0.4, 1.0);
-	DEFAULT_CHAT_FRAME:AddMessage("/IDZone on / off prints your Zone in Channels 1 - 10", 0.4, 0.4, 1.0);
-	return
-	end
-
-	if (msg == "off") then
-	IdentityEnabled = "false"
-	DEFAULT_CHAT_FRAME:AddMessage("Identity Disabled", 0.4, 0.4, 1.0);
-	return
-	end
-
-	if (msg == "on") then
-	IdentityEnabled = "true"DEFAULT_CHAT_FRAME:AddMessage("Identity Enabled", 0.4, 0.4, 1.0);
-	return
-	end
+    -- Check which command was specified, if any
+    if (Cmd == "") then
+        Identity_PrintConfig();
+    end
 end
 
-function IDMain_Cmd(msg)
-	MainName = msg;
-	DEFAULT_CHAT_FRAME:AddMessage("ID Main Name set to: "..MainName, 0.4, 0.4, 1.0);
-return
+-- Split a command into two parts: the name of the command, and any
+-- command arguments.
+function Identity_ParseCmd(msg)
+    return "", "";
 end
 
-function IDNick_Cmd(msg)
-	NickName = msg;
-	DEFAULT_CHAT_FRAME:AddMessage("ID Nickname set to: "..NickName, 0.4, 0.4, 1.0);
-return
+-- Dumps the current Identity configuration
+function Identity_PrintConfig()
+    -- Print general Identity information
+    DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_VERSION .. " configuration:", 0.4, 0.4, 1.0);
+    if (IdentitySettings.Enabled) then
+        DEFAULT_CHAT_FRAME:AddMessage("  Enabled", 0.4, 1.0, 0.4);
+    else
+        DEFAULT_CHAT_FRAME:AddMessage("  Disabled", 1.0, 0.4, 0.4);        
+    end
+
+    -- Check if the Main Identity is configured
+    if (IdentitySettings.MainName ~= "") then
+        -- Get an example of the current Identity
+        local main = Identity_GenerateMainName();
+
+        -- Get the list of channels enabled for the current Identity
+        local mainChannels = Identity_GetMainChannels();
+
+        -- Display the main Identity
+        DEFAULT_CHAT_FRAME:AddMessage("  Main name: " .. main, 0.4, 0.4, 1.0);
+        if (mainChannels ~= "") then
+            DEFAULT_CHAT_FRAME:AddMessage("    " .. mainChannels, 0.4, 1.0, 0.4);
+        else
+            DEFAULT_CHAT_FRAME:AddMessage("    All channels disabled", 1.0, 0.4, 0.4);
+        end
+    else
+        DEFAULT_CHAT_FRAME:AddMessage("  No main name", 1.0, 0.4, 0.4);
+    end
+
+    -- Check if the Nick Identity is configured
+    if (IdentitySettings.NickName ~= "") then
+        -- Get an example of the current Identity
+        local nick = Identity_GenerateNickName();
+
+        -- Get the list of channels enabled for the current Identity
+        local nickChannels = Identity_GetNickChannels();
+
+        -- Display the nick Identity
+        DEFAULT_CHAT_FRAME:AddMessage("  Nick name: " .. nick, 0.4, 0.4, 1.0);
+        if (nickChannels ~= "") then
+            DEFAULT_CHAT_FRAME:AddMessage("    " .. nickChannels, 0.4, 1.0, 0.4);
+        else
+            DEFAULT_CHAT_FRAME:AddMessage("    All channels disabled", 1.0, 0.4, 0.4);
+        end
+    else
+        DEFAULT_CHAT_FRAME:AddMessage("  No nickname", 1.0, 0.4, 0.4);
+    end
 end
 
-function IDChan_Cmd(msg)
-	if (msg == "on" ) then
-	ChanEnabled = "true"
-	DEFAULT_CHAT_FRAME:AddMessage("ID Main Name in Channels Enabled", 0.4, 0.4, 1.0);
-	return
-	end
+-- Formats the main name for prepending to a chat message
+function Identity_GenerateMainName()
+    local name = IdentitySettings.MainName;
 
-	if (msg == "off" ) then
-	ChanEnabled = "false"
-	DEFAULT_CHAT_FRAME:AddMessage("ID Main Name in Channels Disabled", 0.4, 0.4, 1.0);
-	return
-	end
+    -- Check if we need to append zone information as well
+    if (IdentitySettings.DisplayZone) then
+        name = name .. ", " .. GetZoneText();
+    end
+
+    return string.format(IdentitySettings.Format, name);
 end
 
-function IDZone_Cmd(msg)
-	if (msg == "on" ) then
-	ZoneEnabled = "true"
-	DEFAULT_CHAT_FRAME:AddMessage("ID Zone Print Enabled", 0.4, 0.4, 1.0);
-	return
-	end
+-- Formats the nickname for prepending to a chat message
+function Identity_GenerateNickName()
+    local name = IdentitySettings.NickName;
 
-	if (msg == "off" ) then
-	ZoneEnabled = "false"
-	DEFAULT_CHAT_FRAME:AddMessage("ID Zone Print Disabled", 0.4, 0.4, 1.0);
-	return
-	end
+    -- Check if we need to append zone information as well
+    if (IdentitySettings.DisplayZone) then
+        name = name .. ", " .. GetZoneText();
+    end
+
+    return string.format(IdentitySettings.Format, name);
 end
 
-function IDTell_Cmd(msg)
-	if (msg == "on" ) then
-	TellEnabled = "true"
-	DEFAULT_CHAT_FRAME:AddMessage("ID Tell Enabled", 0.4, 0.4, 1.0);
-	return
-	end
-
-	if (msg == "off" ) then
-	TellEnabled = "false"
-	DEFAULT_CHAT_FRAME:AddMessage("ID Tell Disabled", 0.4, 0.4, 1.0);
-	return
-	end
+-- Concatenates of list of enabled channels for the main character's name
+function Identity_GetMainChannels()
+    local channels = "";
+    if (IdentitySettings.Channels.Guild) then
+        channels = channels .. "Guild ";
+    end
+    if (IdentitySettings.Channels.Officer) then
+        channels = channels .. "Officer ";
+    end
+    if (IdentitySettings.Channels.Tell) then
+        channels = channels .. "Whisper ";
+    end
+    if (IdentitySettings.Channels.C01) then
+        channels = channels .. "1 ";
+    end
+    if (IdentitySettings.Channels.C02) then
+        channels = channels .. "2 ";
+    end
+    if (IdentitySettings.Channels.C03) then
+        channels = channels .. "3 ";
+    end
+    if (IdentitySettings.Channels.C04) then
+        channels = channels .. "4 ";
+    end
+    if (IdentitySettings.Channels.C05) then
+        channels = channels .. "5 ";
+    end
+    if (IdentitySettings.Channels.C06) then
+        channels = channels .. "6 ";
+    end
+    if (IdentitySettings.Channels.C07) then
+        channels = channels .. "7 ";
+    end
+    if (IdentitySettings.Channels.C08) then
+        channels = channels .. "8 ";
+    end
+    if (IdentitySettings.Channels.C09) then
+        channels = channels .. "9 ";
+    end
+    if (IdentitySettings.Channels.C10) then
+        channels = channels .. "10 ";
+    end
+    return channels;
 end
 
-function IDReset_Cmd()
-	IdentityEnabled = "true";
-	MainName = "";
-	NickName = "";
-	TellEnabled = "false";
-	ChanEnabled = "false";
-	ZoneEnabled = "false";
-	DEFAULT_CHAT_FRAME:AddMessage("Identity reset for this toon.  Identity enabled.", 0.4, 0.4, 1.0);
-return
+-- Concatenates of list of enabled channels for the character's nickname
+function Identity_GetNickChannels()
+    local channels = "";
+    if (IdentitySettings.Channels.Raid) then
+        channels = channels .. "Raid ";
+    end
+    if (IdentitySettings.Channels.Party) then
+        channels = channels .. "Party ";
+    end
+    return channels;
 end
