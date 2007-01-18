@@ -1,0 +1,10 @@
+## Interface: 20000
+## Title: Identity
+## Notes: Add Main name to Guild, Officer, and Tells.  Add Nickname to Party & Raid chats.
+## Author: Ferusnox
+## Version: 20000-1
+## OptionalDeps:
+## Dependencies:
+## SavedVariables:
+## SavedVariablesPerCharacter:MainName,IdentityEnabled,TellEnabled,NickName,ChanEnabled,ZoneEnabled
+Identity.xml
