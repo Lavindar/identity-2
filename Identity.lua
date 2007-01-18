@@ -249,7 +249,19 @@ end
 -- Displays the help information
 function Identity_PrintHelp(cmdName)
     DEFAULT_CHAT_FRAME:AddMessage("----", 1.0, 1.0, 1.0);
-    DEFAULT_CHAT_FRAME:AddMessage("Help!", 0.4, 0.4, 1.0);
+    DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_VERSION .. " help:", 0.4, 0.4, 1.0);
+    DEFAULT_CHAT_FRAME:AddMessage("See Readme.txt for more detailed information", 0.4, 0.4, 1.0);
+    DEFAULT_CHAT_FRAME:AddMessage("/id - Displays the current configuration", 0.4, 0.4, 1.0);
+    DEFAULT_CHAT_FRAME:AddMessage("/id config - Displays the current configuration", 0.4, 0.4, 1.0);
+    DEFAULT_CHAT_FRAME:AddMessage("/id help - Displays this help text", 0.4, 0.4, 1.0);
+    DEFAULT_CHAT_FRAME:AddMessage("/id off - Disables Identity", 0.4, 0.4, 1.0);
+    DEFAULT_CHAT_FRAME:AddMessage("/id on - Enables Identity", 0.4, 0.4, 1.0);
+    DEFAULT_CHAT_FRAME:AddMessage("/id main <name> - Sets the name of your main", 0.4, 0.4, 1.0);
+    DEFAULT_CHAT_FRAME:AddMessage("/id nick <name> - Sets your group short name", 0.4, 0.4, 1.0);
+    DEFAULT_CHAT_FRAME:AddMessage("/id enable <channels> - These channels will print your Identity", 0.4, 0.4, 1.0);
+    DEFAULT_CHAT_FRAME:AddMessage("/id disable <channels> - These channels will not print your Identity", 0.4, 0.4, 1.0);
+    DEFAULT_CHAT_FRAME:AddMessage("/id zone on|off - Toggles your location in your Identity", 0.4, 0.4, 1.0);
+    DEFAULT_CHAT_FRAME:AddMessage("/id reset - Clears your Identity settings", 0.4, 0.4, 1.0);
     DEFAULT_CHAT_FRAME:AddMessage("----", 1.0, 1.0, 1.0);
 end
 

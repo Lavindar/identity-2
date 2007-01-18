@@ -36,8 +36,9 @@ enabled channels except Raid and Party. If no main name is specified,
 the name is cleared.
 
 nick [<name>]
-Sets the nickname Identity. This is the name used in Raid and Party,
-if enabled. If no nickname is specified, the name is cleared.
+Sets the nickname Identity. This is the name used in Raid,
+Battleground, and Party, if enabled. If no nickname is specified, the
+name is cleared.
 
 enable <channel> [...]
 Enables Identity for the specified space-separated channels.
