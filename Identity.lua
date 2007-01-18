@@ -1,13 +1,19 @@
+-----
 -- Identity Addon
 -- Heavily modified by Kjallstrom, Mellonea, Kirin Tor
 -- Created by Ferusnox, Heaven and Earth, Cenarion Circle
 -- Inspired by Thelma Incognito Addon
+-----
+
+-----
+-- INITIALIZATION
+-----
 
 -- Sets the current Identity version
 local Identity_VERSION = "2.0-20003";
 
 -- Stores the unmodified chat message
-local Identity_OrginalSendChatMessage;
+local Identity_OriginalSendChatMessage;
 
 -- Called when Identity is loaded at UI loadtime
 function Identity_OnLoad()
@@ -25,16 +31,16 @@ function Identity_OnEvent()
     if (event == "VARIABLES_LOADED") then
         -- Check if this is the first time Identity has been loaded
         if (not IdentitySettings) then
-	    -- Set the defaults
-	    Identity_InitSettings();
+            -- Set the defaults
+            Identity_InitSettings();
         end
 
-        -- Indicate that Identity is done loading
-        DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_VERSION .. " loaded.", 0.4, 0.4, 1.0);
-
         -- Intercept chat events
-        --Identity_OrginalSendChatMessage = SendChatMessage;
-        --SendChatMessage = Identity_SendChatMessage;
+        Identity_OriginalSendChatMessage = SendChatMessage;
+        SendChatMessage = Identity_SendChatMessage;
+
+        -- Indicate that Identity is done loading
+        DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_VERSION .. " loaded", 0.4, 0.4, 1.0);
     end
 end
 
@@ -64,87 +70,107 @@ function Identity_InitSettings()
     IdentitySettings.Channels.C10 = false;
 end
 
+-----
+-- CHAT MESSAGE HANDLING
+-----
+
 function Identity_SendChatMessage(msg, system, language, channel)
+    -- Check if Identity is enabled
+    if (IdentitySettings.Enabled) then
+        -- Check if the main Identity is configured
+        if (IdentitySettings.MainName ~= "") then
+            -- Get the current Identity
+            local main = Identity_GenerateMainName();
 
--- DEFAULT_CHAT_FRAME:AddMessage(system..channel, 0.4, 0.4, 1.0);
+            -- Modify the message
+            local newmsg = main .. " " .. msg;
 
--- IF THEN ADD NAME
-
-    if (system == "GUILD" or system == "OFFICER" or system == "WHISPER" or system == "RAID" or system == "PARTY" or system == "CHANNEL") then
-
-        if (system == "GUILD" or system == "OFFICER") then
-            if (IdentityEnabled == "false" or MainName == "" or UnitName("player") == MainName) then
-            Identity_OrginalSendChatMessage(msg,system,language,channel)
-            else
-            Identity_OrginalSendChatMessage("("..MainName.."): "..msg,system,language,channel)
+            -- Guild channel
+            if (IdentitySettings.Channels.Guild and system == "GUILD") then
+                Identity_OriginalSendChatMessage(newmsg, system, language, channel);
+                return;
             end
-        end
 
-        if (system == "CHANNEL") then
-            if (IdentityEnabled == "false") then
-            Identity_OrginalSendChatMessage(msg,system,language,channel)
-            else
-                if (MainName == "" or UnitName("player") == MainName or ChanEnabled == "false") then
-                    if (ZoneEnabled == "false") then
-                    Identity_OrginalSendChatMessage(msg,system,language,channel)
-                    else
-                    local zonetext = GetZoneText();
-                    Identity_OrginalSendChatMessage("["..zonetext.."]: "..msg,system,language,channel)
-                    end
-                else
-                    if (ZoneEnabled == "false") then
-                    Identity_OrginalSendChatMessage("("..MainName.."): "..msg,system,language,channel)
-                    else
-                    local zonetext = GetZoneText();
-                    Identity_OrginalSendChatMessage("("..MainName..") ["..zonetext.."]: "..msg,system,language,channel)
-                    end
+            -- Officer channel
+            if (IdentitySettings.Channels.Officer and system == "OFFICER") then
+                Identity_OriginalSendChatMessage(newmsg, system, language, channel);
+                return;
+            end
+
+            -- Whispers
+            if (IdentitySettings.Channels.Tell and system == "WHISPER") then
+                Identity_OriginalSendChatMessage(newmsg, system, language, channel);
+                return;
+            end
+
+            -- Numbered channels
+            if (system == "CHANNEL") then
+                local chanID = string.format("C%02d", channel);
+                if (IdentitySettings.Channels[chanID]) then
+                    Identity_OriginalSendChatMessage(newmsg, system, language, channel);
+                    return;
                 end
-            end 
-        end
-        
-        if (system == "WHISPER") then
-            if (IdentityEnabled == "false" or MainName == "" or UnitName("player") == MainName or TellEnabled == "false") then
-            Identity_OrginalSendChatMessage(msg,system,language,channel)
-            else
-            Identity_OrginalSendChatMessage("(Main: "..MainName.."): "..msg,system,language,channel)
             end
-        end
+       end
 
-        if (system == "PARTY") then
-            if (IdentityEnabled == "false" or NickName == "") then
-            Identity_OrginalSendChatMessage(msg,system,language,channel)
-            else
-            Identity_OrginalSendChatMessage("("..NickName.."): "..msg,system,language,channel)
-            end
-        end
+        -- Check if the nickname Identity is configured
+        if (IdentitySettings.NickName ~= "") then
+            -- Get the current Identity
+            local nick = Identity_GenerateNickName();
 
-        if (system == "RAID") then
-            if (IdentityEnabled == "false" or NickName == "") then
-            Identity_OrginalSendChatMessage(msg,system,language,channel)
-            else
-            Identity_OrginalSendChatMessage("("..NickName.."): "..msg,system,language,channel)
+            -- Modify the message
+            local newmsg = nick .. " " .. msg;
+
+            -- Raid channel
+            if (IdentitySettings.Channels.Guild and system == "RAID") then
+                Identity_OriginalSendChatMessage(newmsg, system, language, channel);
+                return;
             end
-        end
-    else
-    Identity_OrginalSendChatMessage(msg,system,language,channel)
+
+            -- Party channel
+            if (IdentitySettings.Channels.Officer and system == "PARTY") then
+                Identity_OriginalSendChatMessage(newmsg, system, language, channel);
+                return;
+            end
+       end
     end
+
+    -- Pass the message through unchanged
+    Identity_OriginalSendChatMessage(msg, system, language, channel);
 end
+
+-----
+-- COMMAND HANDLING
+-----
 
 -- Handle Identity commands
 function Identity_Cmd(msg)
     -- Extract the command and arguments from the message
-    local Cmd, Options = Identity_ParseCmd(msg);
+    local cmd, options = Identity_ParseCmd(msg);
 
     -- Check which command was specified, if any
-    if (Cmd == "") then
+    if (cmd == "" or cmd == "config") then
         Identity_PrintConfig();
+    else
+        DEFAULT_CHAT_FRAME:AddMessage("Invalid Identity command '" .. msg .. "'", 1.0, 0.4, 0.4);
     end
 end
 
 -- Split a command into two parts: the name of the command, and any
 -- command arguments.
 function Identity_ParseCmd(msg)
-    return "", "";
+    -- Ignore null messages
+    if (msg) then
+        -- Split the command and its arguments
+        local s, e, cmd = string.find(msg, "(%S+)");
+        if (s) then
+            -- Command plus any options
+            return cmd, string.sub(msg, e + 2);
+        else
+            -- All whitespace?
+            return "";
+        end
+    end
 end
 
 -- Dumps the current Identity configuration
@@ -157,7 +183,7 @@ function Identity_PrintConfig()
         DEFAULT_CHAT_FRAME:AddMessage("  Disabled", 1.0, 0.4, 0.4);        
     end
 
-    -- Check if the Main Identity is configured
+    -- Check if the main Identity is configured
     if (IdentitySettings.MainName ~= "") then
         -- Get an example of the current Identity
         local main = Identity_GenerateMainName();
@@ -176,7 +202,7 @@ function Identity_PrintConfig()
         DEFAULT_CHAT_FRAME:AddMessage("  No main name", 1.0, 0.4, 0.4);
     end
 
-    -- Check if the Nick Identity is configured
+    -- Check if the nickname Identity is configured
     if (IdentitySettings.NickName ~= "") then
         -- Get an example of the current Identity
         local nick = Identity_GenerateNickName();
@@ -232,35 +258,11 @@ function Identity_GetMainChannels()
     if (IdentitySettings.Channels.Tell) then
         channels = channels .. "Whisper ";
     end
-    if (IdentitySettings.Channels.C01) then
-        channels = channels .. "1 ";
-    end
-    if (IdentitySettings.Channels.C02) then
-        channels = channels .. "2 ";
-    end
-    if (IdentitySettings.Channels.C03) then
-        channels = channels .. "3 ";
-    end
-    if (IdentitySettings.Channels.C04) then
-        channels = channels .. "4 ";
-    end
-    if (IdentitySettings.Channels.C05) then
-        channels = channels .. "5 ";
-    end
-    if (IdentitySettings.Channels.C06) then
-        channels = channels .. "6 ";
-    end
-    if (IdentitySettings.Channels.C07) then
-        channels = channels .. "7 ";
-    end
-    if (IdentitySettings.Channels.C08) then
-        channels = channels .. "8 ";
-    end
-    if (IdentitySettings.Channels.C09) then
-        channels = channels .. "9 ";
-    end
-    if (IdentitySettings.Channels.C10) then
-        channels = channels .. "10 ";
+    for i = 1, 10 do
+        local chanID = string.format("C%02d", i);
+        if (IdentitySettings.Channels[chanID]) then
+            channels = channels .. i .. " ";
+        end
     end
     return channels;
 end
