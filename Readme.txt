@@ -93,6 +93,10 @@ greater configurability. My original motivations were:
 
 I believe all of that has been achieved. Comments welcome!
 
+2.0-20100
+
+Updated TOC.
+
 ---
 
 Original IDENTITY by Ferusnox
