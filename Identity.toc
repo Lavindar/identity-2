@@ -1,8 +1,8 @@
-## Interface: 20400
+## Interface: 30000
 ## Title: Identity
 ## Notes: Configurable chat identifier, allowing you to automatically label messages in any subset of your channels and tells as originating with your main character.
 ## Author: Kjallstrom
-## Version: 2.0-20400
+## Version: 2.0-30000
 ## OptionalDeps:
 ## Dependencies:
 ## SavedVariables:

@@ -2,7 +2,7 @@ Identity by Kjallstrom (ultranurd@yahoo.com)
 Guild: Mellonea
 Server: Kirin Tor
 
----
+----
 
 This addon allows you to specify your main character's name, an identity format
 string, and which channels will have your identity tag prepended. It
@@ -66,38 +66,18 @@ advanced users only.
 reset
 Clears your character's Identity settings.
 
----
+----
 
 Known Bugs
 
-2.0-20003
-
-Trying to use more than one %s in the format string, or trying to use
+- Trying to use more than one %s in the format string, or trying to use
 % characters on their own, might cause problems, depending on how many
 are in the format string.
+- Location and Name can't be set separately
+- Slash commands are hard to use
+- Defaults to off, which often confuses users
 
----
-
-Version History
-
-2.0-20003
-
-Near-complete rewrite of the original identity, with an emphasis on
-greater configurability. My original motivations were:
-
-1) My guild splits /g and /o into in-character and out-of-character
-   channels, because we play on an RP server.
-2) I wanted to use [Name] instead of (Name):.
-3) I wanted to be able to change settings on individual numbered
-   channels.
-
-I believe all of that has been achieved. Comments welcome!
-
-2.0-20100
-
-Updated TOC.
-
----
+----
 
 Original IDENTITY by Ferusnox
 Guild: Heaven and Earth
