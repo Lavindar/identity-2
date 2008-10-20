@@ -74,7 +74,7 @@ Known Bugs
 % characters on their own, might cause problems, depending on how many
 are in the format string.
 - Location and Name can't be set separately
-- Slash commands are hard to use
+- Slash commands are hard to use; working on a proper UI
 - Defaults to off, which often confuses users
 
 ----
