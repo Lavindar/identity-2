@@ -1,4 +1,5 @@
-Identity by Kjallstrom (ultranurd@yahoo.com)
+Identity-2 by Kjallstrom (ultranurd@yahoo.com)
+http://wow.curse.com/downloads/wow-addons/details/identity-2.aspx
 Guild: Mellonea
 Server: Kirin Tor
 
@@ -10,6 +11,13 @@ also allows you to specify a nickname for use in Raid and Party
 channels.
 
 All options are configured on a per-character basis.
+
+WARNING! Due to the name change, upgrading to version 2.1 from 2.0 will lose
+your saved settings. In WTF/Accounts/ACCOUNT/Server/Character/SavedVariables,
+rename Identity.lua to Identity-2.lua, for each of your
+characters. Apologies for picking a bad name in the first place!
+
+----
 
 Slash Commands:
 

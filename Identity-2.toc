@@ -1,0 +1,10 @@
+## Interface: 30000
+## Title: Identity-2
+## Notes: Configurable chat identifier, auto-labels messages in your channels and tells with your main's name
+## Author: Kjallstrom
+## Version: 2.1-30000
+## OptionalDeps:
+## Dependencies:
+## SavedVariables:
+## SavedVariablesPerCharacter:IdentitySettings
+Identity-2.xml
