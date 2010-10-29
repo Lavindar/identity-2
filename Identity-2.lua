@@ -16,9 +16,9 @@ local Identity_VERSION = "2.1-40000";
 local Identity_OriginalSendChatMessage;
 
 -- Called when Identity is loaded at UI loadtime
-function Identity_OnLoad()
+function Identity_OnLoad(frame)
     -- Prepare to read saved variables
-    this:RegisterEvent("VARIABLES_LOADED");
+    frame:RegisterEvent("VARIABLES_LOADED");
 
     -- Register slash commands
     SlashCmdList["IDENTITY"] = Identity_Cmd;
@@ -27,7 +27,7 @@ function Identity_OnLoad()
 end
 
 -- Handle the variable load event
-function Identity_OnEvent()
+function Identity_OnEvent(frame, event)
     if (event == "VARIABLES_LOADED") then
         -- Check if this is the first time Identity has been loaded
         if (not IdentitySettings) then

@@ -4,10 +4,10 @@ C:\Projects\WoW\Bin\Interface\FrameXML\UI.xsd">
   <Frame name="Identity" hidden="true">
     <Scripts>
       <OnLoad>
-	Identity_OnLoad();
+	Identity_OnLoad(self);
       </OnLoad>
       <OnEvent>
-	Identity_OnEvent(event);
+	Identity_OnEvent(self, event);
       </OnEvent>
     </Scripts>
   </Frame>
