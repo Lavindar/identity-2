@@ -10,7 +10,7 @@
 -----
 
 -- Sets the current Identity version
-local Identity_VERSION = "2.1-30000";
+local Identity_VERSION = "2.1-40000";
 
 -- Stores the unmodified chat message
 local Identity_OriginalSendChatMessage;
