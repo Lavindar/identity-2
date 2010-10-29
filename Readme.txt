@@ -12,11 +12,6 @@ channels.
 
 All options are configured on a per-character basis.
 
-WARNING! Due to the name change, upgrading to version 2.1 from 2.0 will lose
-your saved settings. In WTF/Accounts/ACCOUNT/Server/Character/SavedVariables,
-rename Identity.lua to Identity-2.lua, for each of your
-characters. Apologies for picking a bad name in the first place!
-
 ----
 
 Slash Commands:
