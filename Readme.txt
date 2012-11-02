@@ -1,4 +1,4 @@
-Identity-2 by Kjallstrom (ultranurd@yahoo.com)
+Identity-2 by Kjallstrom (ultranurd@gmail.com)
 http://wow.curse.com/downloads/wow-addons/details/identity-2.aspx
 Guild: Mellonea
 Server: Kirin Tor
