@@ -1,5 +1,6 @@
 -----
 -- Identity Addon
+-- Currently maintained by Lavindar, of The Queue, Nesingwary-US
 -- Heavily modified by Kjallstrom, Mellonea, Kirin Tor
 -- Created by Ferusnox, Heaven and Earth, Cenarion Circle
 -- Inspired by Thelma Incognito Addon
@@ -10,7 +11,7 @@
 -----
 
 -- Sets the current Identity version
-local Identity_VERSION = "2.1-50001";
+local Identity_VERSION = "2.2-60100";
 
 -- Stores the unmodified chat message
 local Identity_OriginalSendChatMessage;

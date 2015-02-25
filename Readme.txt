@@ -1,7 +1,7 @@
-Identity-2 by Kjallstrom (ultranurd@gmail.com)
+Identity-2 by Lavindar(alacre@outlook.com)
 http://wow.curse.com/downloads/wow-addons/details/identity-2.aspx
-Guild: Mellonea
-Server: Kirin Tor
+Guild: of The Queue 
+Server: Nesingwary-US
 
 ----
 
@@ -78,6 +78,12 @@ Known Bugs
 are in the format string.
 - Location and Name can't be set separately
 - Slash commands are hard to use
+
+----
+
+Former author Kjallstrom (ultranurd@gmail.com)
+Guild: Mellonea
+Server: Kirin Tor
 
 ----
 
