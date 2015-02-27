@@ -11,7 +11,7 @@
 -----
 
 -- Sets the current Identity version
-local Identity_VERSION = "2.3-60100";
+local Identity_VERSION = "2.3.1-60100";
 
 -- Stores the unmodified chat message
 local Identity_OriginalSendChatMessage;
@@ -350,7 +350,7 @@ function Identity_PrintConfig()
     end
     
     --Print the message setting current value
-    DEFAULT_CHAT_FRAME:AddMessage("  Identity loaded message: " .. main, 0.4, 0.4, 1.0);
+    DEFAULT_CHAT_FRAME:AddMessage("  Identity loaded message: ", 0.4, 0.4, 1.0);
     if (IdentitySettings.DisplayMessage == "normal") then
         DEFAULT_CHAT_FRAME:AddMessage("  Enabled", 0.4, 1.0, 0.4);
     elseif (IdentitySettings.DisplayMessage == "update") then
@@ -627,9 +627,13 @@ function Identity_SetMessageDisplay(options)
     elseif (options == "") then
         if (IdentitySettings.DisplayMessage == "silent") then
             DEFAULT_CHAT_FRAME:AddMessage("Loaded message display enabled", 0.4, 0.4, 1.0);
+            IdentitySettings.DisplayMessage = "normal";
         else
             DEFAULT_CHAT_FRAME:AddMessage("Loaded message display disabled", 0.4, 0.4, 1.0);
+            IdentitySettings.DisplayMessage = "silent";
         end
+        
+        return;
     else
         DEFAULT_CHAT_FRAME:AddMessage("Invalid Identity message argument '" .. options .. "'", 1.0, 0.4, 0.4);
         return;

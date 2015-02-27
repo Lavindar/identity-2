@@ -4,7 +4,7 @@ Guild: of The Queue
 Server: Nesingwary-US
 
 ----
-Current version: 2.3-60100
+Current version: 2.3.1-60100
 ----
 
 This addon allows you to specify your main character's name, an identity format
