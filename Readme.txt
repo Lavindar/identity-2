@@ -4,7 +4,7 @@ Guild: of The Queue
 Server: Nesingwary-US
 
 ----
-Current version: 2.3.1-60100
+Current version: 3.0.0
 ----
 
 This addon allows you to specify your main character's name, an identity format
@@ -58,9 +58,6 @@ Enables Identity for the specified space-separated channels.
 disable <channel> [...]
 Disables Identity for the specified space-separated channels.
 
-zone on|off
-Sets whether zone information should be added to your Identity.
-
 message normal|update|silent
 Sets how Identity loaded message displays. If no option is specified
 it change to silent if normal or update, and to normal if silent.
@@ -70,24 +67,29 @@ The default value is normal.
   silent: Identity never shows the loaded message
 
 format [<format>]
-Sets the string used to display your Identity. The default is [%s],
-where %s is replaced by the current name information. The default can
-be restored by specifying no format string. All format strings must
-contain %s, which will be replaced by your Identity. Recommended for
-advanced users only.
+Sets the string used to display your Identity. The default is [%s].
+The default can be restored by specifying no format string.
+Valid tokens for use in the format:
+   %s -> Will be replaced by the appropriate identity
+   %z -> Will be replaced by the name of the current zone
+   %l -> Will be replaced by the character level
+   %g -> Will be replaced by the character guild
+   %r -> Will be replaced by the realm name.
 
 reset
 Clears your character's Identity settings.
 
 ----
 
-Known Issues
+Obsolete commands
 
-- Trying to use more than one %s in the format string, or trying to use
-% characters on their own, might cause problems, depending on how many
-are in the format string.
-- Location and Name can't be set separately
-- Slash commands are hard to use
+zone on|off
+Sets whether zone information should be added to your Identity.
+Attention: the zone command is obsolete use %z in the format instead.
+
+----
+
+Known Issues
 
 ----
 

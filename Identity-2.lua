@@ -11,10 +11,13 @@
 -----
 
 -- Sets the current Identity version
-local Identity_VERSION = "2.3.1-60100";
+local Identity_VERSION = "3.0.0";
 
 -- Stores the unmodified chat message
 local Identity_OriginalSendChatMessage;
+
+local Identity_CurrentMainIdentity = "";
+local Identity_CurrentNickIdentity = "";
 
 -- Called when Identity is loaded at UI loadtime
 function Identity_OnLoad(frame)
@@ -23,6 +26,7 @@ function Identity_OnLoad(frame)
 
     -- Register slash commands
     SlashCmdList["IDENTITY"] = Identity_Cmd;
+    
     SLASH_IDENTITY1 = "/identity";
     SLASH_IDENTITY2 = "/id";
 end
@@ -31,7 +35,7 @@ end
 function Identity_OnEvent(frame, event)
     if (event == "VARIABLES_LOADED") then
         local updated = false;
-    
+
         -- Check if this is the first time Identity has been loaded, if not the first time, check if it was updated;
         if (not IdentitySettings) then
             -- Set the defaults
@@ -41,9 +45,9 @@ function Identity_OnEvent(frame, event)
             if (IdentitySettings.Version ~= Identity_VERSION) then
                 -- Check for missing configurations
                 Identity_CheckSettings();
-                
+
                 updated = true;
-                
+
                 IdentitySettings.Version = Identity_VERSION
             end
         end
@@ -64,14 +68,14 @@ end
 -- Create a fresh, default Identity configuration
 function Identity_InitSettings()
     IdentitySettings = {};
-    
+
     IdentitySettings.Enabled = true;
     IdentitySettings.Format = "[%s]";
     IdentitySettings.MainName = "";
     IdentitySettings.NickName = "";
     IdentitySettings.DisplayZone = false;
     IdentitySettings.DisplayMessage = "normal";
-    
+
     IdentitySettings.Channels = {};
     IdentitySettings.Channels.Guild = false;
     IdentitySettings.Channels.Officer = false;
@@ -88,7 +92,7 @@ function Identity_InitSettings()
     IdentitySettings.Channels.C08 = false;
     IdentitySettings.Channels.C09 = false;
     IdentitySettings.Channels.C10 = false;
-    
+
     IdentitySettings.Version = Identity_VERSION;
 end
 
@@ -97,91 +101,91 @@ function Identity_CheckSettings()
     if (not IdentitySettings.Enabled) then
         IdentitySettings.Enabled = true;
     end
-    
+
     if (not IdentitySettings.Format) then
         IdentitySettings.Format = "[%s]";
     end
-    
-    if (not IdentitySettings.MainName) then 
+
+    if (not IdentitySettings.MainName) then
         IdentitySettings.MainName = "";
     end
-    
+
     if (not IdentitySettings.NickName) then
         IdentitySettings.NickName = "";
     end
-    
+
     if (not IdentitySettings.DisplayZone) then
         IdentitySettings.DisplayZone = false;
     end
-    
+
     if (not IdentitySettings.DisplayMessage) then
         IdentitySettings.DisplayMessage = "normal";
     end
-    
+
     if (not IdentitySettings.Channels) then
         IdentitySettings.Channels = {};
     end
-    
+
     if (not IdentitySettings.Channels.Guild) then
         IdentitySettings.Channels.Guild = false;
     end
-    
+
     if (not IdentitySettings.Channels.Officer) then
         IdentitySettings.Channels.Officer = false;
     end
-    
+
     if (not IdentitySettings.Channels.Raid) then
         IdentitySettings.Channels.Raid = false;
     end
-    
+
     if (not IdentitySettings.Channels.Party) then
         IdentitySettings.Channels.Party = false;
     end
-    
+
     if (not IdentitySettings.Channels.Tell) then
         IdentitySettings.Channels.Tell = false;
     end
-    
+
     if (not IdentitySettings.Channels.C01) then
         IdentitySettings.Channels.C01 = false;
     end
-    
+
     if (not IdentitySettings.Channels.C02) then
         IdentitySettings.Channels.C02 = false;
     end
-    
+
     if (not IdentitySettings.Channels.C03) then
         IdentitySettings.Channels.C03 = false;
     end
-    
+
     if (not IdentitySettings.Channels.C04) then
         IdentitySettings.Channels.C04 = false;
     end
-    
+
     if (not IdentitySettings.Channels.C05) then
         IdentitySettings.Channels.C05 = false;
     end
-    
+
     if (not IdentitySettings.Channels.C06) then
         IdentitySettings.Channels.C06 = false;
     end
-    
+
     if (not IdentitySettings.Channels.C07) then
         IdentitySettings.Channels.C07 = false;
     end
-    
+
     if (not IdentitySettings.Channels.C08) then
         IdentitySettings.Channels.C08 = false;
     end
-    
+
     if (not IdentitySettings.Channels.C09) then
         IdentitySettings.Channels.C09 = false;
     end
-    
+
     if (not IdentitySettings.Channels.C10) then
         IdentitySettings.Channels.C10 = false;
     end
-    
+
     if (not IdentitySettings.Version) then
         IdentitySettings.Version = Identity_VERSION;
     end
@@ -194,62 +198,68 @@ end
 function Identity_SendChatMessage(msg, system, language, channel)
     -- Check if Identity is enabled
     if (IdentitySettings.Enabled) then
-        -- Check if the main Identity is configured
-        if (IdentitySettings.MainName ~= "") then
-            -- Get the current Identity
-            local main = Identity_GenerateMainName();
+        if (system == "RAID" or system == "BATTLEGROUND" or system == "PARTY") then
+            -- Check if the nickname Identity is configured
+            if (IdentitySettings.NickName ~= "") then
+                -- Get the current Identity
+                if (Identity_CurrentNickIdentity == "") then
+                    Identity_CurrentNickIdentity = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceTokenNick);
+                end
 
-            -- Modify the message
-            local newmsg = main .. " " .. msg;
+                -- Modify the message
+                local newmsg = Identity_CurrentNickIdentity .. " " .. msg;
 
-            -- Guild channel
-            if (IdentitySettings.Channels.Guild and system == "GUILD") then
-                Identity_OriginalSendChatMessage(newmsg, system, language, channel);
-                return;
-            end
+                -- Raid channel
+                if (IdentitySettings.Channels.Raid and (system == "RAID" or system == "BATTLEGROUND")) then
+                    Identity_OriginalSendChatMessage(newmsg, system, language, channel);
+                    return;
+                end
 
-            -- Officer channel
-            if (IdentitySettings.Channels.Officer and system == "OFFICER") then
-                Identity_OriginalSendChatMessage(newmsg, system, language, channel);
-                return;
-            end
-
-            -- Whispers
-            if (IdentitySettings.Channels.Tell and system == "WHISPER") then
-                Identity_OriginalSendChatMessage(newmsg, system, language, channel);
-                return;
-            end
-
-            -- Numbered channels
-            if (system == "CHANNEL") then
-                local chanID = string.format("C%02d", channel);
-                if (IdentitySettings.Channels[chanID]) then
+                -- Party channel
+                if (IdentitySettings.Channels.Party and system == "PARTY") then
                     Identity_OriginalSendChatMessage(newmsg, system, language, channel);
                     return;
                 end
             end
-       end
+        else
+            -- Check if the main Identity is configured
+            if (IdentitySettings.MainName ~= "") then
+                -- Get the current Identity
+                if (Identity_CurrentMainIdentity == "") then
+                    Identity_CurrentMainIdentity = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceTokenMain);
+                end
 
-        -- Check if the nickname Identity is configured
-        if (IdentitySettings.NickName ~= "") then
-            -- Get the current Identity
-            local nick = Identity_GenerateNickName();
+                -- Modify the message
+                local newmsg = Identity_CurrentMainIdentity .. " " .. msg;
 
-            -- Modify the message
-            local newmsg = nick .. " " .. msg;
+                -- Guild channel
+                if (IdentitySettings.Channels.Guild and system == "GUILD") then
+                    Identity_OriginalSendChatMessage(newmsg, system, language, channel);
+                    return;
+                end
 
-            -- Raid channel
-            if (IdentitySettings.Channels.Raid and (system == "RAID" or system == "BATTLEGROUND")) then
-                Identity_OriginalSendChatMessage(newmsg, system, language, channel);
-                return;
+                -- Officer channel
+                if (IdentitySettings.Channels.Officer and system == "OFFICER") then
+                    Identity_OriginalSendChatMessage(newmsg, system, language, channel);
+                    return;
+                end
+
+                -- Whispers
+                if (IdentitySettings.Channels.Tell and system == "WHISPER") then
+                    Identity_OriginalSendChatMessage(newmsg, system, language, channel);
+                    return;
+                end
+
+                -- Numbered channels
+                if (system == "CHANNEL") then
+                    local chanID = string.format("C%02d", channel);
+                    if (IdentitySettings.Channels[chanID]) then
+                        Identity_OriginalSendChatMessage(newmsg, system, language, channel);
+                        return;
+                    end
+                end
             end
-
-            -- Party channel
-            if (IdentitySettings.Channels.Party and system == "PARTY") then
-                Identity_OriginalSendChatMessage(newmsg, system, language, channel);
-                return;
-            end
-       end
+        end
     end
 
     -- Pass the message through unchanged
@@ -265,7 +275,7 @@ function Identity_GenerateMainName()
         name = name .. ", " .. GetZoneText();
     end
 
-    return string.format(IdentitySettings.Format, name);
+    return name;
 end
 
 -- Formats the nickname for prepending to a chat message
@@ -277,7 +287,45 @@ function Identity_GenerateNickName()
         name = name .. ", " .. GetZoneText();
     end
 
-    return string.format(IdentitySettings.Format, name);
+    return name;
+end
+
+-- Replaces the tokens for they values
+function Identity_ReplaceTokenMain(token)
+    if (key == "s") then
+        return Identity_GenerateMainName();
+    elseif (key == "l") then
+        return UnitLevel("player");
+    elseif (key == "z") then
+        return GetZoneText();
+    elseif (key == "r") then
+        local name, realm = UnitName("player")
+
+        return realm;
+    elseif (key == "g") then
+        return GetGuildInfo("player");
+    end
+
+    return nil;
+end
+
+-- Replaces the tokens for they values
+function Identity_ReplaceTokenNick(token)
+    if (key == "s") then
+        return Identity_GenerateNickName();
+    elseif (key == "l") then
+        return UnitLevel("player");
+    elseif (key == "z") then
+        return GetZoneText();
+    elseif (key == "r") then
+        local name, realm = UnitName("player")
+
+        return realm;
+    elseif (key == "g") then
+        return GetGuildInfo("player");
+    end
+
+    return nil;
 end
 
 -----
@@ -300,8 +348,12 @@ function Identity_Cmd(msg)
         Identity_Enable(false);
     elseif (cmd == "main") then
         IdentitySettings.MainName = Identity_CheckName(IdentitySettings.MainName, options);
+
+        Identity_CurrentMainIdentity = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceTokenMain);
     elseif (cmd == "nick") then
         IdentitySettings.NickName = Identity_CheckName(IdentitySettings.NickName, options);
+
+        Identity_CurrentNickIdentity = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceTokenNick);
     elseif (cmd == "enable") then
         Identity_EnableChannels(options, true);
     elseif (cmd == "disable") then
@@ -346,9 +398,9 @@ function Identity_PrintConfig()
     if (IdentitySettings.Enabled) then
         DEFAULT_CHAT_FRAME:AddMessage("  Enabled", 0.4, 1.0, 0.4);
     else
-        DEFAULT_CHAT_FRAME:AddMessage("  Disabled", 1.0, 0.4, 0.4);        
+        DEFAULT_CHAT_FRAME:AddMessage("  Disabled", 1.0, 0.4, 0.4);
     end
-    
+
     --Print the message setting current value
     DEFAULT_CHAT_FRAME:AddMessage("  Identity loaded message: ", 0.4, 0.4, 1.0);
     if (IdentitySettings.DisplayMessage == "normal") then
@@ -405,60 +457,60 @@ function Identity_PrintHelp(cmdName)
     DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_VERSION .. " help:", 0.4, 0.4, 1.0);
     DEFAULT_CHAT_FRAME:AddMessage("See Readme.txt for more detailed information", 0.4, 0.4, 1.0);
     DEFAULT_CHAT_FRAME:AddMessage(" ", 0.4, 0.4, 1.0);
-    
+
     if (cmdName == "") then
         DEFAULT_CHAT_FRAME:AddMessage("/id - Displays the current configuration", 0.4, 0.4, 1.0);
     end
-    
+
     if (cmdName == "" or cmdName == "config") then
         DEFAULT_CHAT_FRAME:AddMessage("/id config - Displays the current configuration", 0.4, 0.4, 1.0);
     end
-    
+
     if (cmdName == "" or cmdName == "help") then
         DEFAULT_CHAT_FRAME:AddMessage("/id help - Displays the complete help text", 0.4, 0.4, 1.0);
         DEFAULT_CHAT_FRAME:AddMessage("/id help <command> - Displays the detailed help text for the command", 0.4, 0.4, 1.0);
     end
-    
+
     if (cmdName == "" or cmdName == "on" or cmdName == "off") then
         DEFAULT_CHAT_FRAME:AddMessage("/id on - Enables Identity", 0.4, 0.4, 1.0);
-        
+
         if (cmdName ~= "") then
             DEFAULT_CHAT_FRAME:AddMessage("Turns Identity on, using the currently stored settings. Configured", 0.4, 0.4, 1.0);
             DEFAULT_CHAT_FRAME:AddMessage("labels will be sent. Identity is turned on by default.", 0.4, 0.4, 1.0);
             DEFAULT_CHAT_FRAME:AddMessage(" ", 0.4, 0.4, 1.0);
         end
-        
+
         DEFAULT_CHAT_FRAME:AddMessage("/id off - Disables Identity", 0.4, 0.4, 1.0);
-        
+
         if (cmdName ~= "") then
             DEFAULT_CHAT_FRAME:AddMessage("Turns Identity off, but all settings are preserved. No labels will be", 0.4, 0.4, 1.0);
             DEFAULT_CHAT_FRAME:AddMessage("sent. Identity is turned on by default.", 0.4, 0.4, 1.0);
         end
     end
-    
+
     if (cmdName == "" or cmdName == "main") then
         DEFAULT_CHAT_FRAME:AddMessage("/id main <name> - Sets the name of your main", 0.4, 0.4, 1.0);
-        
+
         if (cmdName ~= "") then
             DEFAULT_CHAT_FRAME:AddMessage("Sets the main character's Identity. This is the name used for all", 0.4, 0.4, 1.0);
             DEFAULT_CHAT_FRAME:AddMessage("enabled channels except Raid and Party. If no main name is specified,", 0.4, 0.4, 1.0);
             DEFAULT_CHAT_FRAME:AddMessage("the name is cleared.", 0.4, 0.4, 1.0);
         end
     end
-    
+
     if (cmdName == "" or cmdName == "nick") then
         DEFAULT_CHAT_FRAME:AddMessage("/id nick <name> - Sets your group short name", 0.4, 0.4, 1.0);
-        
+
         if (cmdName ~= "") then
             DEFAULT_CHAT_FRAME:AddMessage("Sets the nickname Identity. This is the name used in Raid,", 0.4, 0.4, 1.0);
             DEFAULT_CHAT_FRAME:AddMessage("Battleground, and Party, if enabled. If no nickname is specified, the", 0.4, 0.4, 1.0);
             DEFAULT_CHAT_FRAME:AddMessage("name is cleared.", 0.4, 0.4, 1.0);
         end
     end
-    
+
     if (cmdName == "" or cmdName == "enable" or cmdName == "disable") then
         DEFAULT_CHAT_FRAME:AddMessage("/id enable <channels> - These channels will print your Identity", 0.4, 0.4, 1.0);
-        
+
         if (cmdName ~= "") then
             DEFAULT_CHAT_FRAME:AddMessage("Enables Identity for the specified space-separated channels.", 0.4, 0.4, 1.0);
             DEFAULT_CHAT_FRAME:AddMessage("  Valid channel identifiers:", 0.4, 0.4, 1.0);
@@ -470,25 +522,17 @@ function Identity_PrintHelp(cmdName)
             DEFAULT_CHAT_FRAME:AddMessage("    1-10", 0.4, 0.4, 1.0);
             DEFAULT_CHAT_FRAME:AddMessage(" ", 0.4, 0.4, 1.0);
         end
-        
+
         DEFAULT_CHAT_FRAME:AddMessage("/id disable <channels> - These channels will not print your Identity", 0.4, 0.4, 1.0);
-        
+
         if (cmdName ~= "") then
             DEFAULT_CHAT_FRAME:AddMessage("Disables Identity for the specified space-separated channels.", 0.4, 0.4, 1.0);
         end
     end
-    
-    if (cmdName == "" or cmdName == "zone") then
-        DEFAULT_CHAT_FRAME:AddMessage("/id zone on|off - Toggles your location in your Identity", 0.4, 0.4, 1.0);
-        
-        if (cmdName ~= "") then
-            DEFAULT_CHAT_FRAME:AddMessage("Sets whether zone information should be added to your Identity.", 0.4, 0.4, 1.0);
-        end
-    end
-    
+
     if (cmdName == "" or cmdName == "message") then
         DEFAULT_CHAT_FRAME:AddMessage("/id message normal|update|silent - Toggles the exibition of the loaded message", 0.4, 0.4, 1,0);
-        
+
         if (cmdName ~= "") then
             DEFAULT_CHAT_FRAME:AddMessage("Sets how Identity loaded message displays. If no option is specified", 0.4, 0.4, 1.0);
             DEFAULT_CHAT_FRAME:AddMessage("it change to silent if normal or update, and to normal if silent.", 0.4, 0.4, 1.0);
@@ -498,23 +542,32 @@ function Identity_PrintHelp(cmdName)
             DEFAULT_CHAT_FRAME:AddMessage("  silent: Identity never shows the loaded message", 0.4, 0.4, 1.0);
         end
     end
-    
+
     if (cmdName == "" or cmdName == "format") then
         DEFAULT_CHAT_FRAME:AddMessage("/id format <string> - Sets the string used to display your Identity.", 0.4, 0.4, 1.0);
-        
+
         if (cmdName ~= "") then
-            DEFAULT_CHAT_FRAME:AddMessage("Sets the string used to display your Identity. The default is [%s],", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("where %s is replaced by the current name information. The default can", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("be restored by specifying no format string. All format strings must", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("contain %s, which will be replaced by your Identity.", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage(" Recommended for advanced users only.", 1.0, 0.4, 0.4);
+            DEFAULT_CHAT_FRAME:AddMessage("Sets the string used to display your Identity. The default is [%s].", 0.4, 0.4, 1.0);
+            DEFAULT_CHAT_FRAME:AddMessage("The default can be restored by specifying no format string.", 0.4, 0.4, 1.0);
+            DEFAULT_CHAT_FRAME:AddMessage("Valid tokens for use in the format: ", 0.4, 0.4, 1.0);
+            DEFAULT_CHAT_FRAME:AddMessage("   %s -> Will be replaced by the appropriate identity", 0.4, 0.4, 1.0);
+            DEFAULT_CHAT_FRAME:AddMessage("   %z -> Will be replaced by the name of the current zone", 0.4, 0.4, 1.0);
+            DEFAULT_CHAT_FRAME:AddMessage("   %l -> Will be replaced by the character level", 0.4, 0.4, 1.0);
+            DEFAULT_CHAT_FRAME:AddMessage("   %g -> Will be replaced by the character guild", 0.4, 0.4, 1.0);
+            DEFAULT_CHAT_FRAME:AddMessage("   %r -> Will be replaced by the realm name.", 0.4, 0.4, 1.0);
         end
     end
-    
+
+    if (cmdName == "zone") then
+        DEFAULT_CHAT_FRAME:AddMessage("/id zone on|off - Toggles your location in your Identity", 0.4, 0.4, 1.0);
+        DEFAULT_CHAT_FRAME:AddMessage("Sets whether zone information should be added to your Identity.", 0.4, 0.4, 1.0);
+        DEFAULT_CHAT_FRAME:AddMessage("Attention: the zone command is obsolete use %z in the format instead.", 1.0, 0.4, 0.4);
+    end
+
     if (cmdName == "" or cmdName == "reset") then
         DEFAULT_CHAT_FRAME:AddMessage("/id reset - Clears your Identity settings", 0.4, 0.4, 1.0);
     end
-    
+
     DEFAULT_CHAT_FRAME:AddMessage(" ", 0.4, 0.4, 1.0);
     DEFAULT_CHAT_FRAME:AddMessage("----", 1.0, 1.0, 1.0);
 end
@@ -609,11 +662,13 @@ function Identity_SetZoneDisplay(options)
         else
             DEFAULT_CHAT_FRAME:AddMessage("Zone display enabled", 0.4, 0.4, 1.0);
         end
-        
+
         IdentitySettings.DisplayZone = not IdentitySettings.DisplayZone;
     else
         DEFAULT_CHAT_FRAME:AddMessage("Invalid Identity zone argument '" .. options .. "'", 1.0, 0.4, 0.4);
     end
+
+    DEFAULT_CHAT_FRAME:AddMessage("Attention: the zone command is obsolete use %z in the format instead.", 1.0, 0.4, 0.4);
 end
 
 -- Enables/disables message display
@@ -632,13 +687,13 @@ function Identity_SetMessageDisplay(options)
             DEFAULT_CHAT_FRAME:AddMessage("Loaded message display disabled", 0.4, 0.4, 1.0);
             IdentitySettings.DisplayMessage = "silent";
         end
-        
+
         return;
     else
         DEFAULT_CHAT_FRAME:AddMessage("Invalid Identity message argument '" .. options .. "'", 1.0, 0.4, 0.4);
         return;
     end
-    
+
     IdentitySettings.DisplayMessage = options;
 end
 
@@ -651,15 +706,12 @@ function Identity_SetFormat(options)
         return;
     end
 
-    -- Check for the %s replacement token
-    if (string.match(options, "%%s")) then
-        -- Escape any other percent sign, to avoid contaminating the format string
-        options = string.gsub(options, "%%([^s])", "%%%%%1");
-        DEFAULT_CHAT_FRAME:AddMessage("Changed format to '" .. options .. "'", 0.4, 0.4, 1.0);
-        IdentitySettings.Format = options;
-    else
-        DEFAULT_CHAT_FRAME:AddMessage("Invalid Identity format string '" .. options .. "'", 1.0, 0.4, 0.4);
-    end
+    DEFAULT_CHAT_FRAME:AddMessage("Changed format to '" .. options .. "'", 0.4, 0.4, 1.0);
+
+    IdentitySettings.Format = options;
+
+    Identity_CurrentMainIdentity = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceTokenMain);
+    Identity_CurrentNickIdentity = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceTokenNick);
 end
 
 -- Concatenates of list of enabled channels for the main character's name
