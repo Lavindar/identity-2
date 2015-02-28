@@ -11,13 +11,10 @@
 -----
 
 -- Sets the current Identity version
-local Identity_VERSION = "3.0.0";
+local Identity_VERSION_MAJOR, Identity_VERSION_MINOR, Identity_VERSION_BUILD = 3, 0, 0;
 
 -- Stores the unmodified chat message
 local Identity_OriginalSendChatMessage;
-
-local Identity_CurrentMainIdentity = "";
-local Identity_CurrentNickIdentity = "";
 
 -- Called when Identity is loaded at UI loadtime
 function Identity_OnLoad(frame)
@@ -26,7 +23,7 @@ function Identity_OnLoad(frame)
 
     -- Register slash commands
     SlashCmdList["IDENTITY"] = Identity_Cmd;
-    
+
     SLASH_IDENTITY1 = "/identity";
     SLASH_IDENTITY2 = "/id";
 end
@@ -35,6 +32,7 @@ end
 function Identity_OnEvent(frame, event)
     if (event == "VARIABLES_LOADED") then
         local updated = false;
+        local news = "";
 
         -- Check if this is the first time Identity has been loaded, if not the first time, check if it was updated;
         if (not IdentitySettings) then
@@ -42,13 +40,17 @@ function Identity_OnEvent(frame, event)
             Identity_InitSettings();
         else
             -- Check if it is an updated version
-            if (IdentitySettings.Version ~= Identity_VERSION) then
+            if (Identity_NewVersion()) then
                 -- Check for missing configurations
                 Identity_CheckSettings();
 
                 updated = true;
 
-                IdentitySettings.Version = Identity_VERSION
+                news = "Tip: Check the new format command. Type: \id help format";
+
+                IdentitySettings.VersionMajor = Identity_VERSION_MAJOR;
+                IdentitySettings.VersionMinor = Identity_VERSION_MINOR;
+                IdentitySettings.VersionBuild = Identity_VERSION_BUILD;
             end
         end
 
@@ -57,10 +59,13 @@ function Identity_OnEvent(frame, event)
         SendChatMessage = Identity_SendChatMessage;
 
         -- Indicate that Identity is done loading, if configured to do so
-        if (IdentitySettings.DisplayMessage == "normal") then
-            DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_VERSION .. " loaded", 0.4, 0.4, 1.0);
-        elseif (updated and IdentitySettings.DisplayMessage == "update") then
-            DEFAULT_CHAT_FRAME:AddMessage("Identity updated to version " .. Identity_VERSION, 0.4, 0.4, 1.0);
+        if (updated and (IdentitySettings.DisplayMessage == "update" or IdentitySettings.DisplayMessage == "normal")) then
+            DEFAULT_CHAT_FRAME:AddMessage("Identity updated to version " .. Identity_GetVersionString(), 0.4, 0.4, 1.0);
+            if (news ~= "") then
+                DEFAULT_CHAT_FRAME:AddMessage(news, 0.4, 0.8, 1.0);
+            end
+        elseif (IdentitySettings.DisplayMessage == "normal") then
+            DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_GetVersionString() .. " loaded", 0.4, 0.4, 1.0);
         end
     end
 end
@@ -75,6 +80,7 @@ function Identity_InitSettings()
     IdentitySettings.NickName = "";
     IdentitySettings.DisplayZone = false;
     IdentitySettings.DisplayMessage = "normal";
+    IdentitySettings.Debug = false;
 
     IdentitySettings.Channels = {};
     IdentitySettings.Channels.Guild = false;
@@ -93,7 +99,9 @@ function Identity_InitSettings()
     IdentitySettings.Channels.C09 = false;
     IdentitySettings.Channels.C10 = false;
 
-    IdentitySettings.Version = Identity_VERSION;
+    IdentitySettings.VersionMajor = Identity_VERSION_MAJOR;
+    IdentitySettings.VersionMinor = Identity_VERSION_MINOR;
+    IdentitySettings.VersionBuild = Identity_VERSION_BUILD;
 end
 
 -- Check stored configuration for entries without values.
@@ -186,8 +194,52 @@ function Identity_CheckSettings()
         IdentitySettings.Channels.C10 = false;
     end
 
-    if (not IdentitySettings.Version) then
-        IdentitySettings.Version = Identity_VERSION;
+    if (not IdentitySettings.VersionMajor) then
+        IdentitySettings.VersionMajor = Identity_VERSION_MAJOR;
+    end
+
+    if (not IdentitySettings.VersionMinor) then
+        IdentitySettings.VersionMajor = Identity_VERSION_MINOR;
+    end
+
+    if (not IdentitySettings.VersionBuild) then
+        IdentitySettings.VersionMajor = Identity_VERSION_BUILD;
+    end
+end
+
+-----
+-- VERSION FUNCTIONS
+-----
+
+--Compare the version numbers and return true if its a new Major or Minor version
+function Identity_NewVersion()
+    if ((not IdentitySettings.VersionMajor) or (not IdentitySettings.VersionMinor) or (not IdentitySettings.VersionBuild)) then
+        return true;
+    elseif (IdentitySettings.VersionMajor < Identity_VERSION_MAJOR) then
+        return true;
+    elseif (IdentitySettings.VersionMajor == Identity_VERSION_MAJOR ) then
+        if (IdetitySettings.VersionMinor < Identity_VERSION_MINOR) then
+            return true;
+        end
+    end
+
+    return false;
+end
+
+
+-- Returns the full version
+function Identity_GetVersionString()
+    return Identity_VERSION_MAJOR .. "." .. Identity_VERSION_MINOR .. "." .. Identity_VERSION_BUILD;
+end
+
+-----
+-- DEBUG FUNCTIONS
+-----
+
+-- Debug
+function Indentity_Debug(msg)
+    if (IdentitySettings.Debug) then
+        DEFAULT_CHAT_FRAME:AddMessage("Identity Debug: " .. msg, 0.8, 0.8, 0.8)
     end
 end
 
@@ -198,16 +250,22 @@ end
 function Identity_SendChatMessage(msg, system, language, channel)
     -- Check if Identity is enabled
     if (IdentitySettings.Enabled) then
+        if (IdentitySettings.Debug) then Indentity_Debug("entered Identity_SendChatMessage"); end
+
+        if (IdentitySettings.Debug) then Indentity_Debug("system " .. system); end
+
         if (system == "RAID" or system == "BATTLEGROUND" or system == "PARTY") then
             -- Check if the nickname Identity is configured
             if (IdentitySettings.NickName ~= "") then
                 -- Get the current Identity
-                if (Identity_CurrentNickIdentity == "") then
-                    Identity_CurrentNickIdentity = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceTokenNick);
-                end
+                local nick = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceTokenNick);
+
+                if (IdentitySettings.Debug) then Indentity_Debug("nick: " .. nick); end
 
                 -- Modify the message
-                local newmsg = Identity_CurrentNickIdentity .. " " .. msg;
+                local newmsg = nick .. " " .. msg;
+
+                if (IdentitySettings.Debug) then Indentity_Debug("newmsg: " .. newmsg); end
 
                 -- Raid channel
                 if (IdentitySettings.Channels.Raid and (system == "RAID" or system == "BATTLEGROUND")) then
@@ -225,12 +283,14 @@ function Identity_SendChatMessage(msg, system, language, channel)
             -- Check if the main Identity is configured
             if (IdentitySettings.MainName ~= "") then
                 -- Get the current Identity
-                if (Identity_CurrentMainIdentity == "") then
-                    Identity_CurrentMainIdentity = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceTokenMain);
-                end
+                local main = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceTokenMain);
+
+                if (IdentitySettings.Debug) then Indentity_Debug("main: " .. main); end
 
                 -- Modify the message
-                local newmsg = Identity_CurrentMainIdentity .. " " .. msg;
+                local newmsg = main .. " " .. msg;
+
+                if (IdentitySettings.Debug) then Indentity_Debug("newmsg: " .. newmsg); end
 
                 -- Guild channel
                 if (IdentitySettings.Channels.Guild and system == "GUILD") then
@@ -292,40 +352,56 @@ end
 
 -- Replaces the tokens for they values
 function Identity_ReplaceTokenMain(token)
-    if (key == "s") then
-        return Identity_GenerateMainName();
-    elseif (key == "l") then
-        return UnitLevel("player");
-    elseif (key == "z") then
-        return GetZoneText();
-    elseif (key == "r") then
-        local name, realm = UnitName("player")
+    if (IdentitySettings.Debug) then Indentity_Debug("Identity_ReplaceTokenMain - token: " .. token); end
 
-        return realm;
-    elseif (key == "g") then
-        return GetGuildInfo("player");
+    local value = "";
+
+    if (token == "s") then
+        value = Identity_GenerateMainName();
+    elseif (token == "l") then
+        value = UnitLevel("player");
+    elseif (token == "z") then
+        value = GetZoneText();
+    elseif (token == "r") then
+        value = GetRealmName();
+    elseif (token == "g") then
+        value = GetGuildInfo("player");
+    else
+        if (IdentitySettings.Debug) then Indentity_Debug("value: " .. "nil"); end
+
+        return nil;
     end
 
-    return nil;
+    if (IdentitySettings.Debug) then Indentity_Debug("value: " .. value); end
+
+    return value;
 end
 
 -- Replaces the tokens for they values
 function Identity_ReplaceTokenNick(token)
-    if (key == "s") then
-        return Identity_GenerateNickName();
-    elseif (key == "l") then
-        return UnitLevel("player");
-    elseif (key == "z") then
-        return GetZoneText();
-    elseif (key == "r") then
-        local name, realm = UnitName("player")
+    if (IdentitySettings.Debug) then Indentity_Debug("Identity_ReplaceTokenNick - token: " .. token); end
 
-        return realm;
-    elseif (key == "g") then
-        return GetGuildInfo("player");
+    local value = "";
+
+    if (token == "s") then
+        value = Identity_GenerateMainNick();
+    elseif (token == "l") then
+        value = UnitLevel("player");
+    elseif (token == "z") then
+        value = GetZoneText();
+    elseif (token == "r") then
+        value = GetRealmName();
+    elseif (token == "g") then
+        value = GetGuildInfo("player");
+    else
+        if (IdentitySettings.Debug) then Indentity_Debug("value: " .. "nil"); end
+
+        return nil;
     end
 
-    return nil;
+    if (IdentitySettings.Debug) then Indentity_Debug("value: " .. value); end
+
+    return value;
 end
 
 -----
@@ -348,12 +424,8 @@ function Identity_Cmd(msg)
         Identity_Enable(false);
     elseif (cmd == "main") then
         IdentitySettings.MainName = Identity_CheckName(IdentitySettings.MainName, options);
-
-        Identity_CurrentMainIdentity = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceTokenMain);
     elseif (cmd == "nick") then
         IdentitySettings.NickName = Identity_CheckName(IdentitySettings.NickName, options);
-
-        Identity_CurrentNickIdentity = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceTokenNick);
     elseif (cmd == "enable") then
         Identity_EnableChannels(options, true);
     elseif (cmd == "disable") then
@@ -394,7 +466,7 @@ end
 function Identity_PrintConfig()
     -- Print general Identity information
     DEFAULT_CHAT_FRAME:AddMessage("----", 1.0, 1.0, 1.0);
-    DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_VERSION .. " configuration:", 0.4, 0.4, 1.0);
+    DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_GetVersionString() .. " configuration:", 0.4, 0.4, 1.0);
     if (IdentitySettings.Enabled) then
         DEFAULT_CHAT_FRAME:AddMessage("  Enabled", 0.4, 1.0, 0.4);
     else
@@ -454,7 +526,7 @@ end
 -- Displays the help information
 function Identity_PrintHelp(cmdName)
     DEFAULT_CHAT_FRAME:AddMessage("----", 1.0, 1.0, 1.0);
-    DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_VERSION .. " help:", 0.4, 0.4, 1.0);
+    DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_GetVersionString() .. " help:", 0.4, 0.4, 1.0);
     DEFAULT_CHAT_FRAME:AddMessage("See Readme.txt for more detailed information", 0.4, 0.4, 1.0);
     DEFAULT_CHAT_FRAME:AddMessage(" ", 0.4, 0.4, 1.0);
 
@@ -709,9 +781,6 @@ function Identity_SetFormat(options)
     DEFAULT_CHAT_FRAME:AddMessage("Changed format to '" .. options .. "'", 0.4, 0.4, 1.0);
 
     IdentitySettings.Format = options;
-
-    Identity_CurrentMainIdentity = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceTokenMain);
-    Identity_CurrentNickIdentity = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceTokenNick);
 end
 
 -- Concatenates of list of enabled channels for the main character's name
