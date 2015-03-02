@@ -220,6 +220,33 @@ function Identity_SendChatMessage(msg, system, language, channel)
         if (system == "RAID" or system == "BATTLEGROUND" or system == "PARTY") then
             -- Check if the nickname Identity is configured
             if (IdentitySettings.NickName ~= "") then
+                -- Replaces the tokens for they values
+                local function Identity_ReplaceTokenNick(token)
+                    if (IdentitySettings.Debug) then Indentity_Debug("Identity_ReplaceTokenNick - token: " .. token); end
+
+                    local value = "";
+
+                    if (token == "s") then
+                        value = Identity_GenerateMainNick();
+                    elseif (token == "l") then
+                        value = UnitLevel("player");
+                    elseif (token == "z") then
+                        value = GetZoneText();
+                    elseif (token == "r") then
+                        value = GetRealmName();
+                    elseif (token == "g") then
+                        value = GetGuildInfo("player");
+                    else
+                        if (IdentitySettings.Debug) then Indentity_Debug("value: " .. "nil"); end
+
+                        return nil;
+                    end
+
+                    if (IdentitySettings.Debug) then Indentity_Debug("value: " .. value); end
+
+                    return value;
+                end
+
                 -- Get the current Identity
                 local nick = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceTokenNick);
 
@@ -245,6 +272,34 @@ function Identity_SendChatMessage(msg, system, language, channel)
         else
             -- Check if the main Identity is configured
             if (IdentitySettings.MainName ~= "") then
+                -- Replaces the tokens for they values
+                local function Identity_ReplaceTokenMain(token)
+                    if (IdentitySettings.Debug) then Indentity_Debug("Identity_ReplaceTokenMain - token: " .. token); end
+
+                    local value = "";
+
+                    if (token == "s") then
+                        value = Identity_GenerateMainName();
+                    elseif (token == "l") then
+                        value = UnitLevel("player");
+                    elseif (token == "z") then
+                        value = GetZoneText();
+                    elseif (token == "r") then
+                        value = GetRealmName();
+                    elseif (token == "g") then
+                        value = GetGuildInfo("player");
+                    else
+                        if (IdentitySettings.Debug) then Indentity_Debug("value: " .. "nil"); end
+
+                        return nil;
+                    end
+
+                    if (IdentitySettings.Debug) then Indentity_Debug("value: " .. value); end
+
+                    return value;
+                end
+
+
                 -- Get the current Identity
                 local main = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceTokenMain);
 
@@ -311,60 +366,6 @@ function Identity_GenerateNickName()
     end
 
     return name;
-end
-
--- Replaces the tokens for they values
-function Identity_ReplaceTokenMain(token)
-    if (IdentitySettings.Debug) then Indentity_Debug("Identity_ReplaceTokenMain - token: " .. token); end
-
-    local value = "";
-
-    if (token == "s") then
-        value = Identity_GenerateMainName();
-    elseif (token == "l") then
-        value = UnitLevel("player");
-    elseif (token == "z") then
-        value = GetZoneText();
-    elseif (token == "r") then
-        value = GetRealmName();
-    elseif (token == "g") then
-        value = GetGuildInfo("player");
-    else
-        if (IdentitySettings.Debug) then Indentity_Debug("value: " .. "nil"); end
-
-        return nil;
-    end
-
-    if (IdentitySettings.Debug) then Indentity_Debug("value: " .. value); end
-
-    return value;
-end
-
--- Replaces the tokens for they values
-function Identity_ReplaceTokenNick(token)
-    if (IdentitySettings.Debug) then Indentity_Debug("Identity_ReplaceTokenNick - token: " .. token); end
-
-    local value = "";
-
-    if (token == "s") then
-        value = Identity_GenerateMainNick();
-    elseif (token == "l") then
-        value = UnitLevel("player");
-    elseif (token == "z") then
-        value = GetZoneText();
-    elseif (token == "r") then
-        value = GetRealmName();
-    elseif (token == "g") then
-        value = GetGuildInfo("player");
-    else
-        if (IdentitySettings.Debug) then Indentity_Debug("value: " .. "nil"); end
-
-        return nil;
-    end
-
-    if (IdentitySettings.Debug) then Indentity_Debug("value: " .. value); end
-
-    return value;
 end
 
 -----
