@@ -11,7 +11,7 @@
 -----
 
 -- Sets the current Identity version
-local Identity_VERSION_MAJOR, Identity_VERSION_MINOR, Identity_VERSION_BUILD = 3, 0, 0;
+local Identity_VERSION = "3.0.0";
 
 -- Stores the unmodified chat message
 local Identity_OriginalSendChatMessage;
@@ -40,17 +40,15 @@ function Identity_OnEvent(frame, event)
             Identity_InitSettings();
         else
             -- Check if it is an updated version
-            if (Identity_NewVersion()) then
+            if (IdentitySettings.Version ~= Identity_VERSION) then
                 -- Check for missing configurations
                 Identity_CheckSettings();
 
                 updated = true;
 
-                news = "Tip: Check the new format command. Type: \id help format";
+                news = "Identity Tip: Check the new format command. Type: \\id help format";
 
-                IdentitySettings.VersionMajor = Identity_VERSION_MAJOR;
-                IdentitySettings.VersionMinor = Identity_VERSION_MINOR;
-                IdentitySettings.VersionBuild = Identity_VERSION_BUILD;
+                IdentitySettings.Version = Identity_VERSION;
             end
         end
 
@@ -60,12 +58,12 @@ function Identity_OnEvent(frame, event)
 
         -- Indicate that Identity is done loading, if configured to do so
         if (updated and (IdentitySettings.DisplayMessage == "update" or IdentitySettings.DisplayMessage == "normal")) then
-            DEFAULT_CHAT_FRAME:AddMessage("Identity updated to version " .. Identity_GetVersionString(), 0.4, 0.4, 1.0);
+            DEFAULT_CHAT_FRAME:AddMessage("Identity updated to version " .. Identity_VERSION, 0.4, 0.4, 1.0);
             if (news ~= "") then
                 DEFAULT_CHAT_FRAME:AddMessage(news, 0.4, 0.8, 1.0);
             end
         elseif (IdentitySettings.DisplayMessage == "normal") then
-            DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_GetVersionString() .. " loaded", 0.4, 0.4, 1.0);
+            DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_VERSION .. " loaded", 0.4, 0.4, 1.0);
         end
     end
 end
@@ -99,9 +97,7 @@ function Identity_InitSettings()
     IdentitySettings.Channels.C09 = false;
     IdentitySettings.Channels.C10 = false;
 
-    IdentitySettings.VersionMajor = Identity_VERSION_MAJOR;
-    IdentitySettings.VersionMinor = Identity_VERSION_MINOR;
-    IdentitySettings.VersionBuild = Identity_VERSION_BUILD;
+    IdentitySettings.Version = Identity_VERSION;
 end
 
 -- Check stored configuration for entries without values.
@@ -194,42 +190,9 @@ function Identity_CheckSettings()
         IdentitySettings.Channels.C10 = false;
     end
 
-    if (not IdentitySettings.VersionMajor) then
-        IdentitySettings.VersionMajor = Identity_VERSION_MAJOR;
+    if (not IdentitySettings.Version) then
+        IdentitySettings.Version = Identity_VERSION;
     end
-
-    if (not IdentitySettings.VersionMinor) then
-        IdentitySettings.VersionMajor = Identity_VERSION_MINOR;
-    end
-
-    if (not IdentitySettings.VersionBuild) then
-        IdentitySettings.VersionMajor = Identity_VERSION_BUILD;
-    end
-end
-
------
--- VERSION FUNCTIONS
------
-
---Compare the version numbers and return true if its a new Major or Minor version
-function Identity_NewVersion()
-    if ((not IdentitySettings.VersionMajor) or (not IdentitySettings.VersionMinor) or (not IdentitySettings.VersionBuild)) then
-        return true;
-    elseif (IdentitySettings.VersionMajor < Identity_VERSION_MAJOR) then
-        return true;
-    elseif (IdentitySettings.VersionMajor == Identity_VERSION_MAJOR ) then
-        if (IdetitySettings.VersionMinor < Identity_VERSION_MINOR) then
-            return true;
-        end
-    end
-
-    return false;
-end
-
-
--- Returns the full version
-function Identity_GetVersionString()
-    return Identity_VERSION_MAJOR .. "." .. Identity_VERSION_MINOR .. "." .. Identity_VERSION_BUILD;
 end
 
 -----
@@ -410,8 +373,19 @@ end
 
 -- Handle Identity commands
 function Identity_Cmd(msg)
+    if (IdentitySettings.Debug) then Indentity_Debug("entered Identity_Cmd"); end
+
     -- Extract the command and arguments from the message
     local cmd, options = Identity_ParseCmd(msg);
+
+    if (IdentitySettings.Debug) then Indentity_Debug("Identity_Cmd command: " .. cmd); end
+    if (IdentitySettings.Debug) then
+        if (options) then
+            Indentity_Debug("Identity_Cmd options: " .. options);
+        else
+            Indentity_Debug("Identity_Cmd options: nil");
+        end
+    end
 
     -- Check which command was specified, if any
     if (cmd == "" or cmd == "config") then
@@ -448,8 +422,11 @@ end
 -- Split a command into two parts: the name of the command, and any
 -- command arguments.
 function Identity_ParseCmd(msg)
+    if (IdentitySettings.Debug) then Indentity_Debug("entered Identity_ParseCmd"); end
+
     -- Ignore null messages
     if (msg) then
+        if (IdentitySettings.Debug) then Indentity_Debug("msg: " .. msg); end
         -- Split the command and its arguments
         local s, e, cmd = string.find(msg, "(%S+)");
         if (s) then
@@ -466,7 +443,7 @@ end
 function Identity_PrintConfig()
     -- Print general Identity information
     DEFAULT_CHAT_FRAME:AddMessage("----", 1.0, 1.0, 1.0);
-    DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_GetVersionString() .. " configuration:", 0.4, 0.4, 1.0);
+    DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_VERSION .. " configuration:", 0.4, 0.4, 1.0);
     if (IdentitySettings.Enabled) then
         DEFAULT_CHAT_FRAME:AddMessage("  Enabled", 0.4, 1.0, 0.4);
     else
@@ -520,13 +497,18 @@ function Identity_PrintConfig()
     else
         DEFAULT_CHAT_FRAME:AddMessage("  No nickname", 1.0, 0.4, 0.4);
     end
+
+    if (IdentitySettings.Debug) then
+        DEFAULT_CHAT_FRAME:AddMessage("Debug enabled", 0.4, 0.4, 1.0);
+    end
+
     DEFAULT_CHAT_FRAME:AddMessage("----", 1.0, 1.0, 1.0);
 end
 
 -- Displays the help information
 function Identity_PrintHelp(cmdName)
     DEFAULT_CHAT_FRAME:AddMessage("----", 1.0, 1.0, 1.0);
-    DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_GetVersionString() .. " help:", 0.4, 0.4, 1.0);
+    DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_VERSION .. " help:", 0.4, 0.4, 1.0);
     DEFAULT_CHAT_FRAME:AddMessage("See Readme.txt for more detailed information", 0.4, 0.4, 1.0);
     DEFAULT_CHAT_FRAME:AddMessage(" ", 0.4, 0.4, 1.0);
 
@@ -656,6 +638,10 @@ end
 
 -- Checks the specified name
 function Identity_CheckName(old, new)
+    if (IdentitySettings.Debug) then Indentity_Debug("entered Identity_CheckName"); end
+    if (IdentitySettings.Debug) then Indentity_Debug("old name: " .. old); end
+    if (IdentitySettings.Debug) then Indentity_Debug("new name: " .. new); end
+
     -- Check that a new name specified
     if (not new) then
         -- Keep the existing name
@@ -687,6 +673,10 @@ end
 
 -- Enables/disables the specified channel
 function Identity_EnableChannel(channel, enable)
+    if (IdentitySettings.Debug) then Indentity_Debug("entered Identity_EnableChannel"); end
+    if (IdentitySettings.Debug) then Indentity_Debug("channel: " .. channel); end
+    if (IdentitySettings.Debug) then Indentity_Debug("enable: " .. enable); end
+
     -- Update the channel setting and get the channel's canonical name
     local channelName = "";
     if (channel == "g" or channel == "guild") then
