@@ -1,5 +1,5 @@
 Identity-2 by Lavindar(alacre@outlook.com)
-http://wow.curse.com/downloads/wow-addons/details/identity-2.aspx
+http://www.curse.com/addons/wow/identity-2
 Guild: of The Queue 
 Server: Nesingwary-US
 

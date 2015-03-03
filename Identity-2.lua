@@ -16,6 +16,36 @@ local Identity_VERSION = "3.0.0";
 -- Stores the unmodified chat message
 local Identity_OriginalSendChatMessage;
 
+local IdentitySettingsDefault ={
+    ["Enabled"] = true,
+    ["Format"] = "[%s]",
+    ["MainName"] = "",
+    ["NickName"] = "",
+    ["DisplayZone"] = false,
+    ["DisplayMessage"] = "normal",
+    ["Debug"] = false,
+
+    ["Channels"] = {
+        ["Guild"] = false,
+        ["Officer"] = false,
+        ["Raid"] = false,
+        ["Party"] = false,
+        ["Tell"] = false,
+        ["C01"] = false,
+        ["C02"] = false,
+        ["C03"] = false,
+        ["C04"] = false,
+        ["C05"] = false,
+        ["C06"] = false,
+        ["C07"] = false,
+        ["C08"] = false,
+        ["C09"] = false,
+        ["C10"] = false
+    },
+
+    ["Version"] = Identity_VERSION
+}
+
 -- Called when Identity is loaded at UI loadtime
 function Identity_OnLoad(frame)
     -- Prepare to read saved variables
@@ -41,8 +71,8 @@ function Identity_OnEvent(frame, event)
         else
             -- Check if it is an updated version
             if (IdentitySettings.Version ~= Identity_VERSION) then
-                -- Check for missing configurations
-                Identity_CheckSettings();
+                -- Check for new configurations
+                IdentitySettings = Identity_CheckSettings(IdentitySettingsDefault, IdentitySettings);
 
                 updated = true;
 
@@ -70,129 +100,25 @@ end
 
 -- Create a fresh, default Identity configuration
 function Identity_InitSettings()
-    IdentitySettings = {};
-
-    IdentitySettings.Enabled = true;
-    IdentitySettings.Format = "[%s]";
-    IdentitySettings.MainName = "";
-    IdentitySettings.NickName = "";
-    IdentitySettings.DisplayZone = false;
-    IdentitySettings.DisplayMessage = "normal";
-    IdentitySettings.Debug = false;
-
-    IdentitySettings.Channels = {};
-    IdentitySettings.Channels.Guild = false;
-    IdentitySettings.Channels.Officer = false;
-    IdentitySettings.Channels.Raid = false;
-    IdentitySettings.Channels.Party = false;
-    IdentitySettings.Channels.Tell = false;
-    IdentitySettings.Channels.C01 = false;
-    IdentitySettings.Channels.C02 = false;
-    IdentitySettings.Channels.C03 = false;
-    IdentitySettings.Channels.C04 = false;
-    IdentitySettings.Channels.C05 = false;
-    IdentitySettings.Channels.C06 = false;
-    IdentitySettings.Channels.C07 = false;
-    IdentitySettings.Channels.C08 = false;
-    IdentitySettings.Channels.C09 = false;
-    IdentitySettings.Channels.C10 = false;
-
-    IdentitySettings.Version = Identity_VERSION;
+    IdentitySettings = IdentitySettingsDefault;
 end
 
--- Check stored configuration for entries without values.
-function Identity_CheckSettings()
-    if (not IdentitySettings.Enabled) then
-        IdentitySettings.Enabled = true;
+-- Iterate over the values of the default setting, copy their value from the existing setting if it exists if not use the default value
+-- as seen in: http://wow.gamepedia.com/index.php?title=Talk:Creating_defaults&oldid=2142802
+function Identity_CheckSettings(newDB, oldDB)
+    local k, v;
+
+    for k, v in pairs(newDB) do
+        if (type(v) == "table") then
+            if (oldDB and oldDB[k] ~= nil) then
+                newDB[k] = Identity_CheckSettings(v, oldDB[k]);
+            end
+        elseif (oldDB and oldDB[k] ~= nil and k ~= "Version") then
+            newDB[k] = oldDB[k];
+        end
     end
 
-    if (not IdentitySettings.Format) then
-        IdentitySettings.Format = "[%s]";
-    end
-
-    if (not IdentitySettings.MainName) then
-        IdentitySettings.MainName = "";
-    end
-
-    if (not IdentitySettings.NickName) then
-        IdentitySettings.NickName = "";
-    end
-
-    if (not IdentitySettings.DisplayZone) then
-        IdentitySettings.DisplayZone = false;
-    end
-
-    if (not IdentitySettings.DisplayMessage) then
-        IdentitySettings.DisplayMessage = "normal";
-    end
-
-    if (not IdentitySettings.Channels) then
-        IdentitySettings.Channels = {};
-    end
-
-    if (not IdentitySettings.Channels.Guild) then
-        IdentitySettings.Channels.Guild = false;
-    end
-
-    if (not IdentitySettings.Channels.Officer) then
-        IdentitySettings.Channels.Officer = false;
-    end
-
-    if (not IdentitySettings.Channels.Raid) then
-        IdentitySettings.Channels.Raid = false;
-    end
-
-    if (not IdentitySettings.Channels.Party) then
-        IdentitySettings.Channels.Party = false;
-    end
-
-    if (not IdentitySettings.Channels.Tell) then
-        IdentitySettings.Channels.Tell = false;
-    end
-
-    if (not IdentitySettings.Channels.C01) then
-        IdentitySettings.Channels.C01 = false;
-    end
-
-    if (not IdentitySettings.Channels.C02) then
-        IdentitySettings.Channels.C02 = false;
-    end
-
-    if (not IdentitySettings.Channels.C03) then
-        IdentitySettings.Channels.C03 = false;
-    end
-
-    if (not IdentitySettings.Channels.C04) then
-        IdentitySettings.Channels.C04 = false;
-    end
-
-    if (not IdentitySettings.Channels.C05) then
-        IdentitySettings.Channels.C05 = false;
-    end
-
-    if (not IdentitySettings.Channels.C06) then
-        IdentitySettings.Channels.C06 = false;
-    end
-
-    if (not IdentitySettings.Channels.C07) then
-        IdentitySettings.Channels.C07 = false;
-    end
-
-    if (not IdentitySettings.Channels.C08) then
-        IdentitySettings.Channels.C08 = false;
-    end
-
-    if (not IdentitySettings.Channels.C09) then
-        IdentitySettings.Channels.C09 = false;
-    end
-
-    if (not IdentitySettings.Channels.C10) then
-        IdentitySettings.Channels.C10 = false;
-    end
-
-    if (not IdentitySettings.Version) then
-        IdentitySettings.Version = Identity_VERSION;
-    end
+    return newDB;
 end
 
 -----
