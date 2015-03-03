@@ -76,7 +76,7 @@ function Identity_OnEvent(frame, event)
 
                 updated = true;
 
-                news = "Identity Tip: Check the new format command. Type: \\id help format";
+                news = "Identity Tip: Check the new format command. Type: /id help format";
 
                 IdentitySettings.Version = Identity_VERSION;
             end
