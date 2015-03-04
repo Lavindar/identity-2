@@ -77,8 +77,6 @@ function Identity_OnEvent(frame, event)
                 updated = true;
 
                 news = "Identity Tip: Check the new format command. Type: /id help format";
-
-                IdentitySettings.Version = Identity_VERSION;
             end
         end
 
@@ -117,7 +115,7 @@ function Identity_CheckSettings(newDB, oldDB)
             newDB[k] = oldDB[k];
         end
     end
-
+    
     return newDB;
 end
 
@@ -126,7 +124,7 @@ end
 -----
 
 -- Debug
-function Indentity_Debug(msg)
+function Identity_Debug(msg)
     if (IdentitySettings.Debug) then
         DEFAULT_CHAT_FRAME:AddMessage("Identity Debug: " .. msg, 0.8, 0.8, 0.8)
     end
@@ -136,52 +134,81 @@ end
 -- CHAT MESSAGE HANDLING
 -----
 
+-- Formats the main name for prepending to a chat message
+function Identity_GenerateMainName()
+    local name = IdentitySettings.MainName;
+
+    -- Check if we need to append zone information as well
+    if (IdentitySettings.DisplayZone) then
+        name = name .. ", " .. GetZoneText();
+    end
+
+    return name;
+end
+
+-- Formats the nickname for prepending to a chat message
+function Identity_GenerateNickName()
+    local name = IdentitySettings.NickName;
+
+    -- Check if we need to append zone information as well
+    if (IdentitySettings.DisplayZone) then
+        name = name .. ", " .. GetZoneText();
+    end
+
+    return name;
+end
+
 function Identity_SendChatMessage(msg, system, language, channel)
     -- Check if Identity is enabled
     if (IdentitySettings.Enabled) then
-        if (IdentitySettings.Debug) then Indentity_Debug("entered Identity_SendChatMessage"); end
+        local identity = "";
+        
+        -- Replaces the tokens for they values
+        local function Identity_ReplaceToken(token)
+            if (IdentitySettings.Debug) then Identity_Debug("entered Identity_ReplaceToken"); end
+            if (IdentitySettings.Debug) then Identity_Debug("token: " .. token); end
 
-        if (IdentitySettings.Debug) then Indentity_Debug("system " .. system); end
+            local value = "";
+
+            if (token == "s") then
+                value = identity;
+            elseif (token == "l") then
+                value = UnitLevel("player");
+            elseif (token == "z") then
+                value = GetZoneText();
+            elseif (token == "r") then
+                value = GetRealmName();
+            elseif (token == "g") then
+                value = GetGuildInfo("player");
+            else
+                if (IdentitySettings.Debug) then Identity_Debug("value: " .. "nil"); end
+
+                return nil;
+            end
+
+            if (IdentitySettings.Debug) then Identity_Debug("value: " .. value); end
+
+            return value;
+        end
+        
+        if (IdentitySettings.Debug) then Identity_Debug("entered Identity_SendChatMessage"); end
+
+        if (IdentitySettings.Debug) then Identity_Debug("system " .. system); end
 
         if (system == "RAID" or system == "BATTLEGROUND" or system == "PARTY") then
             -- Check if the nickname Identity is configured
             if (IdentitySettings.NickName ~= "") then
-                -- Replaces the tokens for they values
-                local function Identity_ReplaceTokenNick(token)
-                    if (IdentitySettings.Debug) then Indentity_Debug("Identity_ReplaceTokenNick - token: " .. token); end
-
-                    local value = "";
-
-                    if (token == "s") then
-                        value = Identity_GenerateMainNick();
-                    elseif (token == "l") then
-                        value = UnitLevel("player");
-                    elseif (token == "z") then
-                        value = GetZoneText();
-                    elseif (token == "r") then
-                        value = GetRealmName();
-                    elseif (token == "g") then
-                        value = GetGuildInfo("player");
-                    else
-                        if (IdentitySettings.Debug) then Indentity_Debug("value: " .. "nil"); end
-
-                        return nil;
-                    end
-
-                    if (IdentitySettings.Debug) then Indentity_Debug("value: " .. value); end
-
-                    return value;
-                end
+                identity = Identity_GenerateMainNick();
 
                 -- Get the current Identity
-                local nick = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceTokenNick);
+                local nick = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceToken);
 
-                if (IdentitySettings.Debug) then Indentity_Debug("nick: " .. nick); end
+                if (IdentitySettings.Debug) then Identity_Debug("nick: " .. nick); end
 
                 -- Modify the message
                 local newmsg = nick .. " " .. msg;
 
-                if (IdentitySettings.Debug) then Indentity_Debug("newmsg: " .. newmsg); end
+                if (IdentitySettings.Debug) then Identity_Debug("newmsg: " .. newmsg); end
 
                 -- Raid channel
                 if (IdentitySettings.Channels.Raid and (system == "RAID" or system == "BATTLEGROUND")) then
@@ -198,43 +225,17 @@ function Identity_SendChatMessage(msg, system, language, channel)
         else
             -- Check if the main Identity is configured
             if (IdentitySettings.MainName ~= "") then
-                -- Replaces the tokens for they values
-                local function Identity_ReplaceTokenMain(token)
-                    if (IdentitySettings.Debug) then Indentity_Debug("Identity_ReplaceTokenMain - token: " .. token); end
-
-                    local value = "";
-
-                    if (token == "s") then
-                        value = Identity_GenerateMainName();
-                    elseif (token == "l") then
-                        value = UnitLevel("player");
-                    elseif (token == "z") then
-                        value = GetZoneText();
-                    elseif (token == "r") then
-                        value = GetRealmName();
-                    elseif (token == "g") then
-                        value = GetGuildInfo("player");
-                    else
-                        if (IdentitySettings.Debug) then Indentity_Debug("value: " .. "nil"); end
-
-                        return nil;
-                    end
-
-                    if (IdentitySettings.Debug) then Indentity_Debug("value: " .. value); end
-
-                    return value;
-                end
-
-
+                identity = Identity_GenerateMainName();
+                
                 -- Get the current Identity
-                local main = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceTokenMain);
+                local main = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceToken);
 
-                if (IdentitySettings.Debug) then Indentity_Debug("main: " .. main); end
+                if (IdentitySettings.Debug) then Identity_Debug("main: " .. main); end
 
                 -- Modify the message
                 local newmsg = main .. " " .. msg;
 
-                if (IdentitySettings.Debug) then Indentity_Debug("newmsg: " .. newmsg); end
+                if (IdentitySettings.Debug) then Identity_Debug("newmsg: " .. newmsg); end
 
                 -- Guild channel
                 if (IdentitySettings.Channels.Guild and system == "GUILD") then
@@ -270,47 +271,23 @@ function Identity_SendChatMessage(msg, system, language, channel)
     Identity_OriginalSendChatMessage(msg, system, language, channel);
 end
 
--- Formats the main name for prepending to a chat message
-function Identity_GenerateMainName()
-    local name = IdentitySettings.MainName;
-
-    -- Check if we need to append zone information as well
-    if (IdentitySettings.DisplayZone) then
-        name = name .. ", " .. GetZoneText();
-    end
-
-    return name;
-end
-
--- Formats the nickname for prepending to a chat message
-function Identity_GenerateNickName()
-    local name = IdentitySettings.NickName;
-
-    -- Check if we need to append zone information as well
-    if (IdentitySettings.DisplayZone) then
-        name = name .. ", " .. GetZoneText();
-    end
-
-    return name;
-end
-
 -----
 -- COMMAND HANDLING
 -----
 
 -- Handle Identity commands
 function Identity_Cmd(msg)
-    if (IdentitySettings.Debug) then Indentity_Debug("entered Identity_Cmd"); end
+    if (IdentitySettings.Debug) then Identity_Debug("entered Identity_Cmd"); end
 
     -- Extract the command and arguments from the message
     local cmd, options = Identity_ParseCmd(msg);
 
-    if (IdentitySettings.Debug) then Indentity_Debug("Identity_Cmd command: " .. cmd); end
+    if (IdentitySettings.Debug) then Identity_Debug("Identity_Cmd command: " .. cmd); end
     if (IdentitySettings.Debug) then
         if (options) then
-            Indentity_Debug("Identity_Cmd options: " .. options);
+            Identity_Debug("Identity_Cmd options: " .. options);
         else
-            Indentity_Debug("Identity_Cmd options: nil");
+            Identity_Debug("Identity_Cmd options: nil");
         end
     end
 
@@ -349,11 +326,11 @@ end
 -- Split a command into two parts: the name of the command, and any
 -- command arguments.
 function Identity_ParseCmd(msg)
-    if (IdentitySettings.Debug) then Indentity_Debug("entered Identity_ParseCmd"); end
+    if (IdentitySettings.Debug) then Identity_Debug("entered Identity_ParseCmd"); end
 
     -- Ignore null messages
     if (msg) then
-        if (IdentitySettings.Debug) then Indentity_Debug("msg: " .. msg); end
+        if (IdentitySettings.Debug) then Identity_Debug("msg: " .. msg); end
         -- Split the command and its arguments
         local s, e, cmd = string.find(msg, "(%S+)");
         if (s) then
@@ -565,9 +542,9 @@ end
 
 -- Checks the specified name
 function Identity_CheckName(old, new)
-    if (IdentitySettings.Debug) then Indentity_Debug("entered Identity_CheckName"); end
-    if (IdentitySettings.Debug) then Indentity_Debug("old name: " .. old); end
-    if (IdentitySettings.Debug) then Indentity_Debug("new name: " .. new); end
+    if (IdentitySettings.Debug) then Identity_Debug("entered Identity_CheckName"); end
+    if (IdentitySettings.Debug) then Identity_Debug("old name: " .. old); end
+    if (IdentitySettings.Debug) then Identity_Debug("new name: " .. new); end
 
     -- Check that a new name specified
     if (not new) then
@@ -600,9 +577,9 @@ end
 
 -- Enables/disables the specified channel
 function Identity_EnableChannel(channel, enable)
-    if (IdentitySettings.Debug) then Indentity_Debug("entered Identity_EnableChannel"); end
-    if (IdentitySettings.Debug) then Indentity_Debug("channel: " .. channel); end
-    if (IdentitySettings.Debug) then Indentity_Debug("enable: " .. enable); end
+    if (IdentitySettings.Debug) then Identity_Debug("entered Identity_EnableChannel"); end
+    if (IdentitySettings.Debug) then Identity_Debug("channel: " .. channel); end
+    if (IdentitySettings.Debug) then Identity_Debug("enable: " .. enable); end
 
     -- Update the channel setting and get the channel's canonical name
     local channelName = "";
