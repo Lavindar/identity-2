@@ -1,0 +1,4 @@
+ignore:
+    - CurseForge # ignore the CurseForge folder
+
+manual-changelog: CurseForge/changelog.txt

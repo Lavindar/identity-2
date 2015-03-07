@@ -1,0 +1,12 @@
+====Version 3.0.0
+
+++updated the readme file
+++improved the way to format the Identity string, added tokens to set the zone, level, guild, and realm.
+++added a check for new configurations on version change
+++added message slash command to define the load message behavior
+++improved the help command
+--zone command is now obsolete, but remains functional for backwards compatibility
+
+===Version 2.2-60100
+
+++updated ToC to 6.1
