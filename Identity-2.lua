@@ -198,7 +198,7 @@ function Identity_SendChatMessage(msg, system, language, channel)
         if (system == "RAID" or system == "BATTLEGROUND" or system == "PARTY") then
             -- Check if the nickname Identity is configured
             if (IdentitySettings.NickName ~= "") then
-                identity = Identity_GenerateMainNick();
+                identity = Identity_GenerateNickName();
 
                 -- Get the current Identity
                 local nick = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceToken);
