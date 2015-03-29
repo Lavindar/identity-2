@@ -2,7 +2,7 @@
 ## Title: Identity-2
 ## Notes: Configurable chat identifier, auto-labels messages in your channels and tells with your main's name
 ## Author: Lavindar
-## Version: 3.0.0b
+## Version: 3.0.0
 ## OptionalDeps:
 ## Dependencies:
 ## SavedVariables:
