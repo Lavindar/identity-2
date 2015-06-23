@@ -1,4 +1,8 @@
-====Version 3.0.0
+====Version 3.1.0
+
+++TOC bump
+
+====Version 3.0.1
 
 ++updated the readme file
 ++improved the way to format the Identity string, added tokens to set the zone, level, guild, and realm.
