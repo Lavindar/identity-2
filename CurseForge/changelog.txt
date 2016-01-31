@@ -1,16 +1,21 @@
+====Version 3.2.0
+
+* code optimization for future GUI
+* zone command removed, for zone info in the identity the token %z should be used
+
 ====Version 3.1.0
 
-++TOC bump
+* TOC bump
 
 ====Version 3.0.1
 
-++updated the readme file
-++improved the way to format the Identity string, added tokens to set the zone, level, guild, and realm.
-++added a check for new configurations on version change
-++added message slash command to define the load message behavior
-++improved the help command
---zone command is now obsolete, but remains functional for backwards compatibility
+* updated the readme file
+* improved the way to format the Identity string, added tokens to set the zone, level, guild, and realm.
+* added a check for new configurations on version change
+* added message slash command to define the load message behavior
+* improved the help command
+* zone command is now obsolete, but remains functional for backwards compatibility
 
 ===Version 2.2-60100
 
-++updated ToC to 6.1
+* updated ToC to 6.1

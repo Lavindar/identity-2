@@ -4,7 +4,7 @@ Guild: of The Queue
 Server: Nesingwary-US
 
 ----
-Current version: 3.1.0
+Current version: 3.2.0
 ----
 
 This addon allows you to specify your main character's name, an identity format
@@ -78,14 +78,6 @@ Valid tokens for use in the format:
 
 reset
 Clears your character's Identity settings.
-
-----
-
-Obsolete commands
-
-zone on|off
-Sets whether zone information should be added to your Identity.
-Attention: the zone command is obsolete use %z in the format instead.
 
 ----
 
