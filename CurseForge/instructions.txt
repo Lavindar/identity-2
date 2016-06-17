@@ -25,7 +25,7 @@ the name is cleared.
 
 nick [<name>]
 Sets the nickname Identity. This is the name used in Raid,
-Battleground, and Party, if enabled. If no nickname is specified, the
+Instance, and Party, if enabled. If no nickname is specified, the
 name is cleared.
 
 enable <channel> [...]
@@ -35,6 +35,7 @@ Enables Identity for the specified space-separated channels.
     officer, o
     raid, r
     party, p
+    instance, i
     whisper, w, tell, t
     1-10
 

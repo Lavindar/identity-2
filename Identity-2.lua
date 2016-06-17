@@ -11,7 +11,7 @@
 -----
 
 -- Sets the current Identity version
-local Identity_VERSION = "3.2.0";
+local Identity_VERSION = "3.3.0";
 
 -- Stores the unmodified chat message
 local Identity_OriginalSendChatMessage;
@@ -29,6 +29,7 @@ local IdentitySettingsDefault ={
         ["Officer"] = false,
         ["Raid"] = false,
         ["Party"] = false,
+        ["Instance"] = false,
         ["Tell"] = false,
         ["C01"] = false,
         ["C02"] = false,
@@ -75,7 +76,7 @@ function Identity_OnEvent(frame, event)
 
                 updated = true;
 
-                news = "Identity Tip: Check the new format command. Type: /id help format";
+                news = "Identity Tip: Added support for the Instance channel. Type: /id help format";
             end
         end
 
@@ -185,7 +186,7 @@ function Identity_SendChatMessage(msg, system, language, channel)
 
         if (IdentitySettings.Debug) then Identity_Debug("system " .. system); end
 
-        if ((IdentitySettings.Channels.Raid and (system == "RAID" or system == "BATTLEGROUND")) or (IdentitySettings.Channels.Party and system == "PARTY")) then
+        if ((IdentitySettings.Channels.Raid and system == "RAID") or (IdentitySettings.Channels.Instance and system == "INSTANCE_CHAT") or (IdentitySettings.Channels.Party and system == "PARTY")) then
             -- Check if the nickname Identity is configured
             if (IdentitySettings.NickName ~= "") then
                 identity = IdentitySettings.NickName;
@@ -292,8 +293,10 @@ function Identity_ParseCmd(msg)
     -- Ignore null messages
     if (msg) then
         if (IdentitySettings.Debug) then Identity_Debug("msg: " .. msg); end
+        
         -- Split the command and its arguments
         local s, e, cmd = string.find(msg, "(%S+)");
+        
         if (s) then
             -- Command plus any options
             return cmd, string.sub(msg, e + 2);
@@ -422,7 +425,7 @@ function Identity_PrintHelp(cmdName)
 
         if (cmdName ~= "") then
             DEFAULT_CHAT_FRAME:AddMessage("Sets the nickname Identity. This is the name used in Raid,", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("Battleground, and Party, if enabled. If no nickname is specified, the", 0.4, 0.4, 1.0);
+            DEFAULT_CHAT_FRAME:AddMessage("Instance, and Party, if enabled. If no nickname is specified, the", 0.4, 0.4, 1.0);
             DEFAULT_CHAT_FRAME:AddMessage("name is cleared.", 0.4, 0.4, 1.0);
         end
     end
@@ -436,6 +439,7 @@ function Identity_PrintHelp(cmdName)
             DEFAULT_CHAT_FRAME:AddMessage("    guild, g", 0.4, 0.4, 1.0);
             DEFAULT_CHAT_FRAME:AddMessage("    officer, o", 0.4, 0.4, 1.0);
             DEFAULT_CHAT_FRAME:AddMessage("    raid, r", 0.4, 0.4, 1.0);
+            DEFAULT_CHAT_FRAME:AddMessage("    instance, i", 0.4, 0.4, 1.0);
             DEFAULT_CHAT_FRAME:AddMessage("    party, p", 0.4, 0.4, 1.0);
             DEFAULT_CHAT_FRAME:AddMessage("    whisper, w, tell, t", 0.4, 0.4, 1.0);
             DEFAULT_CHAT_FRAME:AddMessage("    1-10", 0.4, 0.4, 1.0);
@@ -450,7 +454,7 @@ function Identity_PrintHelp(cmdName)
     end
 
     if (cmdName == "" or cmdName == "message") then
-        DEFAULT_CHAT_FRAME:AddMessage("/id message normal|update|silent - Toggles the exibition of the loaded message", 0.4, 0.4, 1,0);
+        DEFAULT_CHAT_FRAME:AddMessage("/id message normal|update|silent - Toggles the exhibition of the loaded message", 0.4, 0.4, 1,0);
 
         if (cmdName ~= "") then
             DEFAULT_CHAT_FRAME:AddMessage("Sets how Identity loaded message displays. If no option is specified", 0.4, 0.4, 1.0);
@@ -547,6 +551,9 @@ function Identity_EnableChannel(channel, enable)
     elseif (channel == "r" or channel == "raid") then
         channelName = "Raid";
         IdentitySettings.Channels.Raid = enable;
+    elseif (channel == "i" or channel == "instance") then
+        channelName = "Instance";
+        IdentitySettings.Channels.Instance = enable;
     elseif (channel == "p" or channel == "party") then
         channelName = "Party";
         IdentitySettings.Channels.Party = enable;
@@ -635,6 +642,9 @@ function Identity_GetNickChannels()
     local channels = "";
     if (IdentitySettings.Channels.Raid) then
         channels = channels .. "Raid ";
+    end
+    if (IdentitySettings.Channels.Instance) then
+        channels = channels .. "Instance ";
     end
     if (IdentitySettings.Channels.Party) then
         channels = channels .. "Party ";

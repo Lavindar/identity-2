@@ -4,7 +4,7 @@ Guild: of The Queue
 Server: Nesingwary-US
 
 ----
-Current version: 3.2.0
+Current version: 3.3.0
 ----
 
 This addon allows you to specify your main character's name, an identity format
@@ -42,7 +42,7 @@ the name is cleared.
 
 nick [<name>]
 Sets the nickname Identity. This is the name used in Raid,
-Battleground, and Party, if enabled. If no nickname is specified, the
+Instance, and Party, if enabled. If no nickname is specified, the
 name is cleared.
 
 enable <channel> [...]
@@ -51,6 +51,7 @@ Enables Identity for the specified space-separated channels.
     guild, g
     officer, o
     raid, r
+    instance, i
     party, p
     whisper, w, tell, t
     1-10
