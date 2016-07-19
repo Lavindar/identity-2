@@ -11,7 +11,7 @@
 -----
 
 -- Sets the current Identity version
-local Identity_VERSION = "3.3.0";
+local Identity_VERSION = "3.3.1";
 
 -- Stores the unmodified chat message
 local Identity_OriginalSendChatMessage;
@@ -76,7 +76,7 @@ function Identity_OnEvent(frame, event)
 
                 updated = true;
 
-                news = "Identity Tip: Added support for the Instance channel. Type: /id help format";
+                news = "Identity Tip: Welcome to Legion :)";
             end
         end
 
