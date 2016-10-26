@@ -1,3 +1,7 @@
+====Version 3.3.2
+
+* TOC bump
+
 ====Version 3.3.1
 
 * TOC bump
