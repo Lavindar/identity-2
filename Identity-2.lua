@@ -11,7 +11,7 @@
 -----
 
 -- Sets the current Identity version
-local Identity_VERSION = "3.3.2";
+local Identity_VERSION = "3.3.3";
 
 -- Stores the unmodified chat message
 local Identity_OriginalSendChatMessage;
@@ -76,7 +76,7 @@ function Identity_OnEvent(frame, event)
 
                 updated = true;
 
-                news = "Identity Tip: KARAZHAN!!!!";
+                news = "Identity Tip: BROKEN SHORE REVENGE!!!!";
             end
         end
 
