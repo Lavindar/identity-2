@@ -11,7 +11,7 @@
 -----
 
 -- Sets the current Identity version
-local Identity_VERSION = "3.3.3";
+local Identity_VERSION = "3.3.4";
 
 -- Stores the unmodified chat message
 local Identity_OriginalSendChatMessage;
@@ -23,6 +23,7 @@ local IdentitySettingsDefault ={
     ["NickName"] = "",
     ["DisplayMessage"] = "normal",
     ["Debug"] = false,
+    ["Fun"] = true,
 
     ["Channels"] = {
         ["Guild"] = false,
@@ -146,8 +147,65 @@ function Identity_SendChatMessage(msg, system, language, channel)
 
             local value = "";
 
-            if (token == "s") then
-                value = identity;
+            if (token == "s") then                
+                local dtime = date("*t");
+                
+                if (IdentitySettings.Fun) then
+                    if (dtime["day"] == 31 and dtime["month"] == 3) then
+                        value = GetRandomArgument(
+
+                        identity .. " Jenkins",
+                        identity .. "'Dan",
+                        identity .. " the Cute",
+                        "Magnificient " .. identity,
+                        "Gul'" .. identity,
+                        "Lord " .. identity .. " the III",
+                        "Lady " .. identity .. " the III",
+                        "The one formerly known as " .. identity,
+                        "Master Roshi",
+                        "Darude - Sandstorm",
+                        identity .. identity .. identity,
+                        "#INSERT_IDENTITY_HERE#",
+                        "42",
+                        "Citizen of Dalaran",
+                        "Not " .. identity,
+                        "Goldplated " .. identity,
+                        "Silverplated " .. identity,
+                        "Cooperplated " .. identity,
+                        "Legendary(Orange) " .. identity,
+                        "Epic(Purple) " .. identity,
+                        "Rare(Blue) " .. identity,
+                        "Uncommon(Green) " .. identity,
+                        "Common(White) " .. identity,
+                        "Poor(Grey) " .. identity,
+                        "Smol " .. identity,
+                        "Small " .. identity,
+                        "Big " .. identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity
+                        );
+                    else
+                        value = identity;
+                    end
+                else
+                    value = identity;
+                end
             elseif (token == "l") then
                 value = UnitLevel("player");
             elseif (token == "z") then
@@ -280,6 +338,10 @@ function Identity_Cmd(msg)
         DEFAULT_CHAT_FRAME:AddMessage("Identity configuration cleared", 0.4, 0.4, 1.0);
         Identity_InitSettings();
         Identity_PrintConfig();
+    elseif (cmd == "nofun") then
+        IdentitySettings.Fun = false;
+    elseif (cmd == "fun") then
+        IdentitySettings.Fun = true;
     else
         DEFAULT_CHAT_FRAME:AddMessage("Invalid Identity command '" .. msg .. "'", 1.0, 0.4, 0.4);
     end
