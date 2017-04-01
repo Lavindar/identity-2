@@ -4,6 +4,12 @@ Guild: of The Queue
 Server: Nesingwary-US
 
 ----
+Current version: 3.3.4
+----
+
+Definitely not April's Fool stuff
+
+----
 Current version: 3.3.3
 ----
 
