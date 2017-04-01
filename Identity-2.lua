@@ -151,7 +151,7 @@ function Identity_SendChatMessage(msg, system, language, channel)
                 local dtime = date("*t");
                 
                 if (IdentitySettings.Fun) then
-                    if (dtime["day"] == 31 and dtime["month"] == 3) then
+                    if (dtime["day"] == 1 and dtime["month"] == 4) then
                         value = GetRandomArgument(
 
                         identity .. " Jenkins",
