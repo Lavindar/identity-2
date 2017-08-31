@@ -1,3 +1,7 @@
+====Version 3.4.0
+
+TOC bump
+
 ====Version 3.3.4
 
 Definitely not April's Fool stuff

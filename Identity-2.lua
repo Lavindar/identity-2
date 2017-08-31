@@ -11,7 +11,7 @@
 -----
 
 -- Sets the current Identity version
-local Identity_VERSION = "3.3.4";
+local Identity_VERSION = "3.4.0";
 
 -- Stores the unmodified chat message
 local Identity_OriginalSendChatMessage;
@@ -77,7 +77,7 @@ function Identity_OnEvent(frame, event)
 
                 updated = true;
 
-                news = "Identity Tip: BROKEN SHORE REVENGE!!!!";
+                news = "Identity Tip: Azeroth is pretty pretty :)";
             end
         end
 
