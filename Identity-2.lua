@@ -11,7 +11,7 @@
 -----
 
 -- Sets the current Identity version
-local Identity_VERSION = "3.4.0";
+local Identity_VERSION = "3.4.1";
 
 -- Stores the unmodified chat message
 local Identity_OriginalSendChatMessage;
@@ -94,6 +94,14 @@ function Identity_OnEvent(frame, event)
         elseif (IdentitySettings.DisplayMessage == "normal") then
             DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_VERSION .. " loaded", 0.4, 0.4, 1.0);
         end
+		
+		local dtime = date("*t");
+                
+		if (IdentitySettings.Fun) then
+			if (dtime["day"] == 1 and dtime["month"] == 4) then
+				DEFAULT_CHAT_FRAME:AddMessage("Identity Tip: Type '/id nofun' if there is too much fun today", 0.4, 0.4, 1.0);
+			end
+		end
     end
 end
 
@@ -151,7 +159,7 @@ function Identity_SendChatMessage(msg, system, language, channel)
                 local dtime = date("*t");
                 
                 if (IdentitySettings.Fun) then
-                    if (dtime["day"] == 31 and dtime["month"] == 3) then
+                    if (dtime["day"] == 1 and dtime["month"] == 4) then
                         value = GetRandomArgument(
 
                         identity .. " Jenkins",
@@ -181,6 +189,50 @@ function Identity_SendChatMessage(msg, system, language, channel)
                         "Smol " .. identity,
                         "Small " .. identity,
                         "Big " .. identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+						identity,
+                        identity,
+						identity,
+                        identity,
+						identity,
+                        identity,
+						identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
+                        identity,
                         identity,
                         identity,
                         identity,
