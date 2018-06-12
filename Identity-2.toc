@@ -1,11 +1,14 @@
 ## Interface: 70300
 ## Title: Identity-2
-## Notes: Configurable chat identifier, auto-labels messages in your channels and tells with your main's name
+## Notes: Configurable chat identifier, auto-labels messages in your channels and whispers with your main's name
+## Notes-ptBR: Identificador configuravel para bate-papo, automaticamente assina mensagens em seus canais e sussuros com o nome de seu personagem principal
 ## Author: Lavindar
-## Version: 3.4.1
-## OptionalDeps:
-## Dependencies:
-## SavedVariables:
+## Version: 4.0.0
+## SavedVariables:IdentityDB
 ## SavedVariablesPerCharacter:IdentitySettings
-## X-Credits:Kjallstrom
-Identity-2.xml
+
+embeds.xml
+
+locales/enUS.lua
+locales/ptBR.lua
+Identity-2.lua

@@ -1,3 +1,10 @@
+====Version 4.0.0
+
+* Configuration are now account wide with profile support
+* MainName and NickName deprecated in favor of a single Identity field, with option in each channel to have a channel specific Identity
+* Moved all configurations to a GUI instead of using commands. Any old command will open the new GUI
+* Rewrite of the code in preparation for Battle for Azeroth Communities support
+
 ====Version 3.4.1
 
 Fixed wrong value

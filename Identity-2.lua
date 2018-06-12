@@ -1,141 +1,437 @@
------
--- Identity Addon
--- Currently maintained by Lavindar, of The Queue, Nesingwary-US
--- Heavily modified by Kjallstrom, Mellonea, Kirin Tor
--- Created by Ferusnox, Heaven and Earth, Cenarion Circle
--- Inspired by Thelma Incognito Addon
------
+Identity2 = LibStub("AceAddon-3.0"):NewAddon("Identity2", "AceConsole-3.0", "AceHook-3.0")
 
------
--- INITIALIZATION
------
+local L = LibStub("AceLocale-3.0"):GetLocale("Identity2", true)
 
--- Sets the current Identity version
-local Identity_VERSION = "3.4.1";
-
--- Stores the unmodified chat message
-local Identity_OriginalSendChatMessage;
-
-local IdentitySettingsDefault ={
-    ["Enabled"] = true,
-    ["Format"] = "[%s]",
-    ["MainName"] = "",
-    ["NickName"] = "",
-    ["DisplayMessage"] = "normal",
-    ["Debug"] = false,
-    ["Fun"] = true,
-
-    ["Channels"] = {
-        ["Guild"] = false,
-        ["Officer"] = false,
-        ["Raid"] = false,
-        ["Party"] = false,
-        ["Instance"] = false,
-        ["Tell"] = false,
-        ["C01"] = false,
-        ["C02"] = false,
-        ["C03"] = false,
-        ["C04"] = false,
-        ["C05"] = false,
-        ["C06"] = false,
-        ["C07"] = false,
-        ["C08"] = false,
-        ["C09"] = false,
-        ["C10"] = false
+local defaults = {
+    global = {
+        version = "4.0.0"
     },
-
-    ["Version"] = Identity_VERSION
+    profile = {
+        enabled = true,
+        format = "[%s]",
+        identity = "",
+        fun = true,
+    
+        channels = {
+            ["GUILD"] = {
+                enabled = false,
+                identity = "",
+                type = "GUILD",
+                order = 0
+            },
+            ["OFFICER"] = {
+                enabled = false,
+                identity = "",
+                type = "OFFICER",
+                order = 1
+            },
+            ["RAID"] = {
+                enabled = false,
+                identity = "",
+                type = "RAID",
+                order = 2
+            },
+            ["PARTY"] = {
+                enabled = false,
+                identity = "",
+                type = "PARTY",
+                order = 3
+            },
+            ["INSTANCE_CHAT"] = {
+                enabled = false,
+                identity = "",
+                type = "INSTANCE_CHAT",
+                order = 4
+            },
+            ["WHISPER"] = {
+                enabled = false,
+                identity = "",
+                type = "WHISPER",
+                order = 5
+            },
+            ["SAY"] = {
+                enabled = false,
+                identity = "",
+                type = "SAY",
+                order = 6
+            },
+            ["YELL"] = {
+                enabled = false,
+                identity = "",
+                type = "YELL",
+                order = 7
+            },
+            customs = {}
+        },
+    }
 }
 
--- Called when Identity is loaded at UI loadtime
-function Identity_OnLoad(frame)
-    -- Prepare to read saved variables
-    frame:RegisterEvent("VARIABLES_LOADED");
+local options = nil
 
-    -- Register slash commands
-    SlashCmdList["IDENTITY"] = Identity_Cmd;
+local classColors = {
+    [1] = "C79C6E", --WARRIOR
+    [2] = "F58CBA", --PALADIN
+    [3] = "ABD473", --HUNTER
+    [4] = "FFF569", --ROGUE
+    [5] = "FFFFFF", --PRIEST
+    [6] = "C41F3B", --DEATHKNIGHT
+    [7] = "0070DE", --SHAMAN
+    [8] = "69CCF0", --MAGE
+    [9] = "9482C9", --WARLOCK
+    [10]  = "00FF96", --MONK
+    [11]  = "FF7D0A", --DRUID
+    [12]  = "A330C9" --DEMONHUNTER
+}
 
-    SLASH_IDENTITY1 = "/identity";
-    SLASH_IDENTITY2 = "/id";
-end
-
--- Handle the variable load event
-function Identity_OnEvent(frame, event)
-    if (event == "VARIABLES_LOADED") then
-        local updated = false;
-        local news = "";
-
-        -- Check if this is the first time Identity has been loaded, if not the first time, check if it was updated;
-        if (not IdentitySettings) then
-            -- Set the defaults
-            Identity_InitSettings();
-        else
-            -- Check if it is an updated version
-            if (IdentitySettings.Version ~= Identity_VERSION) then
-                -- Check for new configurations
-                IdentitySettings = Identity_CheckSettings(IdentitySettingsDefault, IdentitySettings);
-
-                updated = true;
-
-                news = "Identity Tip: Azeroth is pretty pretty :)";
+function Identity2:Migration()
+    if(IdentitySettings.Version) then
+        local need_new_profile = false
+        
+        if(self.db.profile.identity ~= "") then
+            if(self.db.profile.enabled ~= IdentitySettings.Enabled) then need_new_profile = true end
+            if(self.db.profile.format ~= IdentitySettings.Format) then need_new_profile = true end
+            if(self.db.profile.identity ~= IdentitySettings.MainName) then need_new_profile = true end
+            if(self.db.profile.fun ~= IdentitySettings.Fun) then need_new_profile = true end
+            
+            for key, value in pairs(IdentitySettings.Channels) do
+                if(key == "Guild") then if(self.db.profile.channels["GUILD"].enabled ~= value) then need_new_profile = true end
+                elseif(key == "Officer") then if(self.db.profile.channels["OFFICER"].enabled ~= value) then need_new_profile = true end
+                elseif(key == "Tell") then if(self.db.profile.channels["WHISPER"].enabled ~= value) then need_new_profile = true end
+                elseif(key == "Instance") then
+                    if(self.db.profile.channels["INSTANCE_CHAT"].enabled ~= value) then need_new_profile = true end
+                    if(self.db.profile.channels["INSTANCE_CHAT"].identity ~= IdentitySettings.NickName) then need_new_profile = true end
+                elseif(key == "Raid") then
+                    if(self.db.profile.channels["RAID"].enabled ~= value) then need_new_profile = true end
+                    if(self.db.profile.channels["RAID"].identity ~= IdentitySettings.NickName) then need_new_profile = true end
+                elseif(key == "Party") then
+                    if(self.db.profile.channels["PARTY"].enabled ~= value) then need_new_profile = true end
+                    if(self.db.profile.channels["PARTY"].identity ~= IdentitySettings.NickName) then need_new_profile = true end
+                else
+                    local s, e, number = string.find(key, "C(%d%d)")
+                    
+                    local id, name, instanceID = GetChannelName(number)
+                    
+                    if(name) then
+                        if(self.db.profile.channels.customs[name].enabled ~= value) then need_new_profile = true end
+                    end
+                end
             end
-        end
-
-        -- Intercept chat events
-        Identity_OriginalSendChatMessage = SendChatMessage;
-        SendChatMessage = Identity_SendChatMessage;
-
-        -- Indicate that Identity is done loading, if configured to do so
-        if (updated and (IdentitySettings.DisplayMessage == "update" or IdentitySettings.DisplayMessage == "normal")) then
-            DEFAULT_CHAT_FRAME:AddMessage("Identity updated to version " .. Identity_VERSION, 0.4, 0.4, 1.0);
-            if (news ~= "") then
-                DEFAULT_CHAT_FRAME:AddMessage(news, 0.4, 0.8, 1.0);
-            end
-        elseif (IdentitySettings.DisplayMessage == "normal") then
-            DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_VERSION .. " loaded", 0.4, 0.4, 1.0);
-        end
-		
-		local dtime = date("*t");
+        
+            if(need_new_profile) then
+                local profile_name = IdentitySettings.Version .. " - " .. UnitName("player") .. "-" .. GetRealmName()
                 
-		if (IdentitySettings.Fun) then
-			if (dtime["day"] == 1 and dtime["month"] == 4) then
-				DEFAULT_CHAT_FRAME:AddMessage("Identity Tip: Type '/id nofun' if there is too much fun today", 0.4, 0.4, 1.0);
-			end
-		end
+                Identity2.db:SetProfile(profile_name)
+                
+                self:Print(L["migration.created_new_profile"](profile_name))
+            end
+        end
+        
+        self.db.profile.enabled = IdentitySettings.Enabled
+        self.db.profile.format = IdentitySettings.Format
+        self.db.profile.identity = IdentitySettings.MainName
+        self.db.profile.fun = IdentitySettings.Fun
+        
+        for key, value in pairs(IdentitySettings.Channels) do
+            if(key == "Guild") then self.db.profile.channels["GUILD"].enabled = value
+            elseif(key == "Officer") then self.db.profile.channels["OFFICER"].enabled = value
+            elseif(key == "Tell") then self.db.profile.channels["WHISPER"].enabled = value
+            elseif(key == "Instance") then
+                self.db.profile.channels["INSTANCE_CHAT"].enabled = value
+                self.db.profile.channels["INSTANCE_CHAT"].identity = IdentitySettings.NickName
+            elseif(key == "Raid") then
+                self.db.profile.channels["RAID"].enabled = value
+                self.db.profile.channels["RAID"].identity = IdentitySettings.NickName
+            elseif(key == "Party") then
+                self.db.profile.channels["PARTY"].enabled = value
+                self.db.profile.channels["PARTY"].identity = IdentitySettings.NickName
+            else
+                local s, e, number = string.find(key, "C(%d%d)")
+                
+                local id, name, instanceID = GetChannelName(number)
+                
+                if(name) then
+                    local new_channel = {
+                        enabled = value,
+                        identity = "",
+                        type = "CUSTOM",
+                        order = table.getn(self.db.profile.channels.customs) + 1,
+                        name = name
+                    }
+                    
+                    self.db.profile.channels.customs[name] = new_channel
+                end
+            end
+        end
+        
+        IdentitySettings = {}
+    
+        self:Print(L["migration.finished"](need_new_profile))
     end
 end
 
--- Create a fresh, default Identity configuration
-function Identity_InitSettings()
-    IdentitySettings = IdentitySettingsDefault;
-end
-
--- Iterate over the values of the default setting, copy their value from the existing setting if it exists if not use the default value
--- as seen in: http://wow.gamepedia.com/index.php?title=Talk:Creating_defaults&oldid=2142802
-function Identity_CheckSettings(newDB, oldDB)
-    local k, v;
-
-    for k, v in pairs(newDB) do
-        if (type(v) == "table") then
-            if (oldDB and oldDB[k] ~= nil) then
-                newDB[k] = Identity_CheckSettings(v, oldDB[k]);
-            end
-        elseif (oldDB and oldDB[k] ~= nil and k ~= "Version") then
-            newDB[k] = oldDB[k];
-        end
+function Identity2:OnInitialize()
+    self.db = LibStub("AceDB-3.0"):New("IdentityDB", defaults, true)
+    
+    self.db.RegisterCallback(self, "OnProfileChanged", "RefreshConfig")
+    self.db.RegisterCallback(self, "OnProfileCopied", "RefreshConfig")
+    self.db.RegisterCallback(self, "OnProfileReset", "RefreshConfig")
+    
+    if(IdentitySettings) then
+        self:Migration()
     end
     
-    return newDB;
+    options = {
+        name = L["options.name"],
+        handler = self,
+        type = "group",
+        childGroups = "tab",
+        args = {
+            version = {
+                name = L["options.version.name"](self.db.global.version),
+                type = "description",
+                order = 0,
+                width = "full"
+            },
+            header = {
+                name = "",
+                type = "header",
+                order = 1
+            },
+            enable = {
+                name = L["options.enable.name"],
+                desc = L["options.enable.desc"],
+                type = "toggle",
+                order = 2,
+                set = function(info, value) self.db.profile.enabled = value end,
+                get = function(info) return self.db.profile.enabled end
+            },
+            fun = {
+                name = L["options.fun.name"],
+                desc = L["options.fun.desc"],
+                type = "toggle",
+                order = 3,
+                set = function(info, value) self.db.profile.fun = value end,
+                get = function(info) return self.db.profile.fun end
+            },
+            format = {
+                name = L["options.format.name"],
+                desc = L["options.format.desc"],
+                type = "input",
+                order = 4,
+                set = function(info, value) if(value == "") then self.db.profile.format = "[%s]" else self.db.profile.format = value end end,
+                get = function(info) return self.db.profile.format end,
+                multiline = false
+            },
+            identity = {
+                name = L["options.identity.name"],
+                desc = L["options.identity.desc"],
+                type = "input",
+                order = 5,
+                width = "full",
+                set = function(info, value) self.db.profile.identity = value end,
+                get = function(info) return self.db.profile.identity end,
+                multiline = false
+            },
+            default_channels = {
+                name = L["options.default_channels.name"],
+                type = "group",
+                order = 6,
+                args = {}
+            },
+            custom_channels = {
+                name = L["options.custom_channels.name"],
+                type = "group",
+                order = 7,
+                args = {}
+            }
+        }
+    }
+    
+    self:LoadDefaultChannels()
+    
+    self:LoadCustomChannels()
+    
+    self:ConfigTableChange()
+    
+    self:RegisterChatCommand("id", "SlashProcessor")
+    self:RegisterChatCommand("identity", "SlashProcessor")
+
+    function self:SlashProcessor(input)
+        InterfaceOptionsFrame_OpenToCategory(generalOptions)
+		InterfaceOptionsFrame_OpenToCategory(profilesOptions)
+        InterfaceOptionsFrame_OpenToCategory(generalOptions)
+    end
+    
+    if(self.db.global.version ~= defaults.global.version) then
+        self.db.global.version = defaults.global.version
+        self:Print(L["initialization.updated"](self.db.global.version))
+    else
+        self:Print(L["initialization.loaded"](self.db.global.version))
+    end
 end
 
------
--- DEBUG FUNCTIONS
------
+function Identity2:ConfigTableChange()
+    LibStub("AceConfig-3.0"):RegisterOptionsTable("Identity2", options)
+    generalOptions = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Identity2", "Identity 2")
+    
+    LibStub("AceConfig-3.0"):RegisterOptionsTable("Identity2 Profiles", LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db))
+    profilesOptions = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Identity2 Profiles", L["profiles.name"], "Identity 2")
+end
 
--- Debug
-function Identity_Debug(msg)
-    if (IdentitySettings.Debug) then
-        DEFAULT_CHAT_FRAME:AddMessage("Identity Debug: " .. msg, 0.8, 0.8, 0.8)
+function Identity2:RefreshConfig()
+    self:LoadDefaultChannels()
+    self:LoadCustomChannels()
+    
+    LibStub("AceConfigRegistry-3.0"):NotifyChange("Identity2")
+end
+
+function Identity2:LoadDefaultChannels()
+    options.args.default_channels.args = {}
+    
+    for key, channel in pairs(self.db.profile.channels) do
+        if(key ~= "customs") then
+            local channel_fields = {
+                name = L["channel." .. channel.type .. ".name"],
+                type = "group",
+                order = channel.order,
+                args = {
+                    header = {
+                        name = L["channel." .. channel.type .. ".name"],
+                        type = "header",
+                        order = 0
+                    },
+                    enable = {
+                        name = L["options.channels.enable.name"],
+                        desc = L["options.channels.enable.desc"](L["channel." .. channel.type .. ".name"]),
+                        type = "toggle",
+                        order = 1,
+                        set = function(info, value) channel.enabled = value end,
+                        get = function(info) return channel.enabled end
+                    },
+                    identity = {
+                        name = L["options.channels.identity.name"],
+                        desc = L["options.channels.identity.desc"](L["channel." .. channel.type .. ".name"], self.db.profile.identity),
+                        type = "input",
+                        order = 2,
+                        width = "full",
+                        set = function(info, value) channel.identity = value end,
+                        get = function(info) return channel.identity end,
+                        multiline = false
+                    },
+                    preview_header = {
+                        name = L["options.channels.preview_header"],
+                        type = "header",
+                        order = 3
+                    },
+                    preview = {
+                        name = function(info) return self:PreviewMessage(channel) end,
+                        type = "description",
+                        order = 4,
+                        fontSize = "medium"
+                    }
+                }
+            }
+        
+            options.args.default_channels.args[channel.type] = channel_fields
+        end
+    end
+end
+
+function Identity2:addCustomChannel(info, name)
+    if(name == "") then
+        UIErrorsFrame:AddMessage(L["options.custom_channels.error.empty"], 1.0, 0.0, 0.0, 5.0)
+    elseif(self.db.profile.channels.customs[name]) then
+        UIErrorsFrame:AddMessage(L["options.custom_channels.error.already_exists"], 1.0, 0.0, 0.0, 5.0)
+    else
+        local new_channel = {
+            enabled = false,
+            identity = "",
+            type = "CUSTOM",
+            order = table.getn(self.db.profile.channels.customs) + 1,
+            name = name
+        }
+        
+        self.db.profile.channels.customs[name] = new_channel
+        
+        self:LoadCustomChannels()
+        
+        LibStub("AceConfigRegistry-3.0"):NotifyChange("Identity2")
+    end
+end
+
+function Identity2:removeCustomChannel(channel)
+    self.db.profile.channels.customs[channel.name] = nil
+    
+    self:LoadCustomChannels()
+    
+    LibStub("AceConfigRegistry-3.0"):NotifyChange("Identity2")
+end
+
+function Identity2:LoadCustomChannels()
+    options.args.custom_channels.args = {
+        add = {
+            name = L["options.custom_channels.add.name"],
+            desc = L["options.custom_channels.add.desc"],
+            type = "input",
+            order = -1,
+            width = "full",
+            set = "addCustomChannel",
+            multiline = false,
+            validate = function(info, value) if(value == "") then return L["options.custom_channels.error.empty"] elseif(self.db.profile.channels.customs[value]) then return L["options.custom_channels.error.already_exists"] else return true end end
+        }
+    }
+    
+    for key, channel in pairs(self.db.profile.channels.customs) do
+        local channel_fields = {
+            name = channel.name,
+            type = "group",
+            order = channel.order,
+            args = {
+                header = {
+                    name = channel.name,
+                    type = "header",
+                    order = 0
+                },
+                enable = {
+                    name = L["options.channels.enable.name"],
+                    desc = L["options.channels.enable.desc"](channel.name),
+                    type = "toggle",
+                    order = 1,
+                    set = function(info, value) channel.enabled = value end,
+                    get = function(info) return channel.enabled end
+                },
+                remove = {
+                    name = L["options.channels.remove.name"],
+                    type = "execute",
+                    order = 2,
+                    func = function(info) self:removeCustomChannel(channel) end,
+                    confirm = true
+                },
+                identity = {
+                    name = L["options.channels.identity.name"],
+                    desc = L["options.channels.identity.desc"](channel.name, self.db.profile.identity),
+                    type = "input",
+                    order = 3,
+                    width = "full",
+                    set = function(info, value) channel.identity = value end,
+                    get = function(info) return channel.identity end,
+                    multiline = false
+                },
+                preview_header = {
+                    name = L["options.channels.preview_header"],
+                    type = "header",
+                    order = 4
+                },
+                preview = {
+                    name = function(info) return self:PreviewMessage(channel) end,
+                    type = "description",
+                    order = 5,
+                    fontSize = "medium"
+                }
+            }
+        }
+    
+        options.args.custom_channels.args[key] = channel_fields
     end
 end
 
@@ -143,634 +439,214 @@ end
 -- CHAT MESSAGE HANDLING
 -----
 
-function Identity_SendChatMessage(msg, system, language, channel)
-    -- Check if Identity is enabled
-    if (IdentitySettings.Enabled) then
-        local identity = "";
+--Has fun in special days
+function Identity2:FunTime(identity, mode)
+    local value
+    
+    if (mode == "PRANK") then
+        value = GetRandomArgument(
+            identity .. L["fun.prank.jenkins"],
+            L["fun.prank.guldan_start"] .. identity,
+            identity .. L["fun.prank.guldan_end"],
+            identity .. L["fun.prank.the_cute"](),
+            L["fun.prank.magnificient"] .. identity,
+            L["fun.prank.the_third"](identity),
+            L["fun.prank.prince"] .. identity,
+            L["fun.prank.master_roshi"],
+            L["fun.prank.whats_the_name_of_the_song"],
+            L["fun.prank.404"],
+            L["fun.prank.univere_life_everything_else"],
+            L["fun.prank.rhonin_best_quote"](),
+            L["fun.prank.not"] .. identity,
+            L["fun.prank.plated"](identity),
+            L["fun.prank.item_quality"](identity),
+            L["fun.prank.size"] .. identity
+        )
+    elseif (mode == "HOHOHO") then
+        value = GetRandomArgument(
+            L["fun.hohoho.santa"](identity),
+            L["fun.hohoho.claus"](identity),
+            L["fun.hohoho.red_nose"](identity)
+        )
+    end
+    
+    return value
+end
+
+--Checks if its a day to have fun
+function Identity2:IsDayForFun()
+    local havingFun
+    local dtime = date("*t")
+    
+    --checks if Fun mode is turned on and only replaces identity some % of the time so its not spammy
+    if (self.db.profile.fun) then
+        if (dtime["day"] == 1 and dtime["month"] == 4  and math.random(100) >= 60) then
+            havingFun = "PRANK"
+        elseif (dtime["day"] == 25 and dtime["month"] == 12  and math.random(100) == 100) then
+            havingFun = "HOHOHO"
+        end
+    else
+        havingFun = "NO"
+    end
+    
+    return havingFun
+end
+
+function Identity2:AlterMessage(msg, channel)
+    if(channel.enabled) then
+        local identity = channel.identity
         
-        -- Replaces the tokens for they values
-        local function Identity_ReplaceToken(token)
-            if (IdentitySettings.Debug) then Identity_Debug("entered Identity_ReplaceToken"); end
-            if (IdentitySettings.Debug) then Identity_Debug("token: " .. token); end
-
-            local value = "";
-
-            if (token == "s") then                
-                local dtime = date("*t");
-                
-                if (IdentitySettings.Fun) then
-                    if (dtime["day"] == 1 and dtime["month"] == 4) then
-                        value = GetRandomArgument(
-
-                        identity .. " Jenkins",
-                        identity .. "'Dan",
-                        identity .. " the Cute",
-                        "Magnificient " .. identity,
-                        "Gul'" .. identity,
-                        "Lord " .. identity .. " the III",
-                        "Lady " .. identity .. " the III",
-                        "The one formerly known as " .. identity,
-                        "Master Roshi",
-                        "Darude - Sandstorm",
-                        identity .. identity .. identity,
-                        "#INSERT_IDENTITY_HERE#",
-                        "42",
-                        "Citizen of Dalaran",
-                        "Not " .. identity,
-                        "Goldplated " .. identity,
-                        "Silverplated " .. identity,
-                        "Cooperplated " .. identity,
-                        "Legendary(Orange) " .. identity,
-                        "Epic(Purple) " .. identity,
-                        "Rare(Blue) " .. identity,
-                        "Uncommon(Green) " .. identity,
-                        "Common(White) " .. identity,
-                        "Poor(Grey) " .. identity,
-                        "Smol " .. identity,
-                        "Small " .. identity,
-                        "Big " .. identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-						identity,
-                        identity,
-						identity,
-                        identity,
-						identity,
-                        identity,
-						identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity,
-                        identity
-                        );
-                    else
-                        value = identity;
-                    end
+        if(identity == "") then
+            identity = self.db.profile.identity
+        end
+        
+        local function LocalReplaceToken(token)
+            local value = ""
+            
+            if (token == "s") then
+                local havingFun = self:IsDayForFun()
+        
+                if(havingFun == "NO") then
+                    value = identity
                 else
-                    value = identity;
+                    value = self:FunTime(identity, havingFun)
                 end
             elseif (token == "l") then
-                value = UnitLevel("player");
+                value = UnitLevel("player")
             elseif (token == "z") then
-                value = GetZoneText();
+                value = GetZoneText()
             elseif (token == "r") then
-                value = GetRealmName();
+                value = GetRealmName()
             elseif (token == "g") then
-                value = GetGuildInfo("player");
+                value = GetGuildInfo("player")
             else
-                if (IdentitySettings.Debug) then Identity_Debug("value: " .. "nil"); end
-
-                return nil;
+                return nil
             end
 
-            if (IdentitySettings.Debug) then Identity_Debug("value: " .. value); end
-
-            return value;
+            return value
         end
         
-        --Create the new message with the identity appended
-        local function Identity_AlterMessage(message)
-            -- Get the current Identity
-            local name = string.gsub(IdentitySettings.Format, "%%(%w+)", Identity_ReplaceToken);
+        return string.gsub(self.db.profile.format, "%%(%w+)", LocalReplaceToken) .. " " .. msg
+    else
+        return msg
+    end
+end
 
-            if (IdentitySettings.Debug) then Identity_Debug("name: " .. name); end
-
-            local newMessage = name .. " " .. message; 
-
-            if (IdentitySettings.Debug) then Identity_Debug("newMessage: " .. newMessage); end
-
-            -- return the modified message
-            return newMessage;
-        end
-        
-        if (IdentitySettings.Debug) then Identity_Debug("entered Identity_SendChatMessage"); end
-
-        if (IdentitySettings.Debug) then Identity_Debug("system " .. system); end
-
-        if ((IdentitySettings.Channels.Raid and system == "RAID") or (IdentitySettings.Channels.Instance and system == "INSTANCE_CHAT") or (IdentitySettings.Channels.Party and system == "PARTY")) then
-            -- Check if the nickname Identity is configured
-            if (IdentitySettings.NickName ~= "") then
-                identity = IdentitySettings.NickName;
+function Identity2:SendChatMessage(msg, system, language, channel, targetPlayer)
+    if(self.db.profile.enabled) then
+        if(system == "CHANNEL") then
+            local id, name, instanceID = GetChannelName(channel)
             
-                Identity_OriginalSendChatMessage(Identity_AlterMessage(msg), system, language, channel);
-                return;
+            if(self.db.profile.channels.customs[name]) then
+                msg = self:AlterMessage(msg, self.db.profile.channels.customs[name])
             end
         else
-            -- Check if the main Identity is configured
-            if (IdentitySettings.MainName ~= "") then
-                identity = IdentitySettings.MainName;
-                
-                -- Guild channel
-                if (IdentitySettings.Channels.Guild and system == "GUILD") then
-                    Identity_OriginalSendChatMessage(Identity_AlterMessage(msg), system, language, channel);
-                    return;
-                end
+            msg = self:AlterMessage(msg, self.db.profile.channels[system])
+        end
+    end
+    
+    -- call the original function through the self.hooks table
+    self.hooks["SendChatMessage"](msg, system, language, channel, targetPlayer)
+end
 
-                -- Officer channel
-                if (IdentitySettings.Channels.Officer and system == "OFFICER") then
-                    Identity_OriginalSendChatMessage(Identity_AlterMessage(msg), system, language, channel);
-                    return;
-                end
+Identity2:RawHook("SendChatMessage", true)
 
-                -- Whispers
-                if (IdentitySettings.Channels.Tell and system == "WHISPER") then
-                    Identity_OriginalSendChatMessage(Identity_AlterMessage(msg), system, language, channel);
-                    return;
-                end
-
-                -- Numbered channels
-                if (system == "CHANNEL") then
-                    local chanID = string.format("C%02d", channel);
-                    if (IdentitySettings.Channels[chanID]) then
-                        Identity_OriginalSendChatMessage(Identity_AlterMessage(msg), system, language, channel);
-                        return;
-                    end
-                end
+function Identity2:findCustomChannel(name)
+    local function GetChannelListAsTable(...)
+        local t = {}
+        local vs = {...}
+        for i, v in pairs(vs) do
+            if(i%2 > 0) then
+                t[v] = vs[i+1]
             end
         end
-    end
-
-    -- Pass the message through unchanged
-    Identity_OriginalSendChatMessage(msg, system, language, channel);
-end
-
------
--- COMMAND HANDLING
------
-
--- Handle Identity commands
-function Identity_Cmd(msg)
-    if (IdentitySettings.Debug) then Identity_Debug("entered Identity_Cmd"); end
-
-    -- Extract the command and arguments from the message
-    local cmd, options = Identity_ParseCmd(msg);
-
-    if (IdentitySettings.Debug) then Identity_Debug("Identity_Cmd command: " .. cmd); end
-    if (IdentitySettings.Debug) then
-        if (options) then
-            Identity_Debug("Identity_Cmd options: " .. options);
-        else
-            Identity_Debug("Identity_Cmd options: nil");
-        end
-    end
-
-    -- Check which command was specified, if any
-    if (cmd == "" or cmd == "config") then
-        Identity_PrintConfig();
-    elseif (cmd == "help") then
-        Identity_PrintHelp(options);
-    elseif (cmd == "on") then
-        Identity_Enable(true);
-    elseif (cmd == "off") then
-        Identity_Enable(false);
-    elseif (cmd == "main") then
-        IdentitySettings.MainName = Identity_CheckName(IdentitySettings.MainName, options);
-    elseif (cmd == "nick") then
-        IdentitySettings.NickName = Identity_CheckName(IdentitySettings.NickName, options);
-    elseif (cmd == "enable") then
-        Identity_EnableChannels(options, true);
-    elseif (cmd == "disable") then
-        Identity_EnableChannels(options, false);
-    elseif (cmd == "zone") then
-        Identity_SetZoneDisplay(options);
-    elseif (cmd == "message") then
-        Identity_SetMessageDisplay(options);
-    elseif (cmd == "format") then
-        Identity_SetFormat(options);
-    elseif (cmd == "reset") then
-        DEFAULT_CHAT_FRAME:AddMessage("Identity configuration cleared", 0.4, 0.4, 1.0);
-        Identity_InitSettings();
-        Identity_PrintConfig();
-    elseif (cmd == "nofun") then
-        IdentitySettings.Fun = false;
-    elseif (cmd == "fun") then
-        IdentitySettings.Fun = true;
-    else
-        DEFAULT_CHAT_FRAME:AddMessage("Invalid Identity command '" .. msg .. "'", 1.0, 0.4, 0.4);
-    end
-end
-
--- Split a command into two parts: the name of the command, and any
--- command arguments.
-function Identity_ParseCmd(msg)
-    if (IdentitySettings.Debug) then Identity_Debug("entered Identity_ParseCmd"); end
-
-    -- Ignore null messages
-    if (msg) then
-        if (IdentitySettings.Debug) then Identity_Debug("msg: " .. msg); end
         
-        -- Split the command and its arguments
-        local s, e, cmd = string.find(msg, "(%S+)");
+        return t
+    end
+    
+    local r = "CHANNEL"
+
+    for id, channel in pairs(GetChannelListAsTable(GetChannelList())) do
+        if(name == channel) then
+            r = r .. id
+        end
+    end
+    
+    return r
+end
+
+function Identity2:PreviewMessage(channel)
+    local identity = channel.identity
+    
+    if(identity == "") then
+        identity = self.db.profile.identity
+    end
+    
+    local function LocalReplaceToken(token)
+        local value = ""
         
-        if (s) then
-            -- Command plus any options
-            return cmd, string.sub(msg, e + 2);
+        if (token == "s") then
+            value = identity
+        elseif (token == "l") then
+            value = UnitLevel("player")
+        elseif (token == "z") then
+            value = GetZoneText()
+        elseif (token == "r") then
+            value = GetRealmName()
+        elseif (token == "g") then
+            value = GetGuildInfo("player")
         else
-            -- All whitespace?
-            return "";
+            return nil
         end
-    end
-end
 
--- Dumps the current Identity configuration
-function Identity_PrintConfig()
-    -- Print general Identity information
-    DEFAULT_CHAT_FRAME:AddMessage("----", 1.0, 1.0, 1.0);
-    DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_VERSION .. " configuration:", 0.4, 0.4, 1.0);
-    if (IdentitySettings.Enabled) then
-        DEFAULT_CHAT_FRAME:AddMessage("  Enabled", 0.4, 1.0, 0.4);
+        return value
+    end
+    
+    local name = ""
+    
+    if(self.db.profile.enabled and channel.enabled) then
+        name = string.gsub(self.db.profile.format, "%%(%w+)", LocalReplaceToken)
+    end
+    
+    local showTimestamps = GetCVar("showTimestamps")
+    
+    local timeString = ""
+    
+    if (showTimestamps ~= "none") then
+        timeString = date(showTimestamps)
+    end 
+    
+    local playerName = UnitName("player")
+    
+    local chatInfo = nil
+    local getFormat = nil
+    
+    if(channel.type == "CUSTOM") then
+        getFormat = _G["CHAT_CHANNEL_GET"]
     else
-        DEFAULT_CHAT_FRAME:AddMessage("  Disabled", 1.0, 0.4, 0.4);
+        getFormat = _G["CHAT_".. channel.type .."_GET"]
     end
-
-    --Print the message setting current value
-    DEFAULT_CHAT_FRAME:AddMessage("  Identity loaded message: ", 0.4, 0.4, 1.0);
-    if (IdentitySettings.DisplayMessage == "normal") then
-        DEFAULT_CHAT_FRAME:AddMessage("  Enabled", 0.4, 1.0, 0.4);
-    elseif (IdentitySettings.DisplayMessage == "update") then
-        DEFAULT_CHAT_FRAME:AddMessage("  Only on new version", 0.4, 0.4, 1.0);
-    elseif (IdentitySettings.DisplayMessage == "silent") then
-        DEFAULT_CHAT_FRAME:AddMessage("  Disabled", 1.0, 0.4, 0.4);
-    end
-
-    -- Check if the main Identity is configured
-    if (IdentitySettings.MainName ~= "") then
-        -- Get an example of the current Identity
-        local main = IdentitySettings.MainName;
-
-        -- Get the list of channels enabled for the current Identity
-        local mainChannels = Identity_GetMainChannels();
-
-        -- Display the main Identity
-        DEFAULT_CHAT_FRAME:AddMessage("  Main name: " .. main, 0.4, 0.4, 1.0);
-        if (mainChannels ~= "") then
-            DEFAULT_CHAT_FRAME:AddMessage("    " .. mainChannels, 0.4, 1.0, 0.4);
+    
+    if(not getFormat) then
+        getFormat = CHAT_SAY_GET
+        chatInfo = ChatTypeInfo["SAY"]
+    else
+        if(channel.type == "CUSTOM") then
+            chatInfo = ChatTypeInfo[self:findCustomChannel(channel.name)]
         else
-            DEFAULT_CHAT_FRAME:AddMessage("    All channels disabled", 1.0, 0.4, 0.4);
-        end
-    else
-        DEFAULT_CHAT_FRAME:AddMessage("  No main name", 1.0, 0.4, 0.4);
-    end
-
-    -- Check if the nickname Identity is configured
-    if (IdentitySettings.NickName ~= "") then
-        -- Get an example of the current Identity
-        local nick = IdentitySettings.NickName;
-
-        -- Get the list of channels enabled for the current Identity
-        local nickChannels = Identity_GetNickChannels();
-
-        -- Display the nick Identity
-        DEFAULT_CHAT_FRAME:AddMessage("  Nickname: " .. nick, 0.4, 0.4, 1.0);
-        if (nickChannels ~= "") then
-            DEFAULT_CHAT_FRAME:AddMessage("    " .. nickChannels, 0.4, 1.0, 0.4);
-        else
-            DEFAULT_CHAT_FRAME:AddMessage("    All channels disabled", 1.0, 0.4, 0.4);
-        end
-    else
-        DEFAULT_CHAT_FRAME:AddMessage("  No nickname", 1.0, 0.4, 0.4);
-    end
-
-    if (IdentitySettings.Debug) then
-        DEFAULT_CHAT_FRAME:AddMessage("Debug enabled", 0.4, 0.4, 1.0);
-    end
-
-    DEFAULT_CHAT_FRAME:AddMessage("----", 1.0, 1.0, 1.0);
-end
-
--- Displays the help information
-function Identity_PrintHelp(cmdName)
-    DEFAULT_CHAT_FRAME:AddMessage("----", 1.0, 1.0, 1.0);
-    DEFAULT_CHAT_FRAME:AddMessage("Identity " .. Identity_VERSION .. " help:", 0.4, 0.4, 1.0);
-    DEFAULT_CHAT_FRAME:AddMessage("See Readme.txt for more detailed information", 0.4, 0.4, 1.0);
-    DEFAULT_CHAT_FRAME:AddMessage(" ", 0.4, 0.4, 1.0);
-
-    if (cmdName == "") then
-        DEFAULT_CHAT_FRAME:AddMessage("/id - Displays the current configuration", 0.4, 0.4, 1.0);
-    end
-
-    if (cmdName == "" or cmdName == "config") then
-        DEFAULT_CHAT_FRAME:AddMessage("/id config - Displays the current configuration", 0.4, 0.4, 1.0);
-    end
-
-    if (cmdName == "" or cmdName == "help") then
-        DEFAULT_CHAT_FRAME:AddMessage("/id help - Displays the complete help text", 0.4, 0.4, 1.0);
-        DEFAULT_CHAT_FRAME:AddMessage("/id help <command> - Displays the detailed help text for the command", 0.4, 0.4, 1.0);
-    end
-
-    if (cmdName == "" or cmdName == "on" or cmdName == "off") then
-        DEFAULT_CHAT_FRAME:AddMessage("/id on - Enables Identity", 0.4, 0.4, 1.0);
-
-        if (cmdName ~= "") then
-            DEFAULT_CHAT_FRAME:AddMessage("Turns Identity on, using the currently stored settings. Configured", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("labels will be sent. Identity is turned on by default.", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage(" ", 0.4, 0.4, 1.0);
-        end
-
-        DEFAULT_CHAT_FRAME:AddMessage("/id off - Disables Identity", 0.4, 0.4, 1.0);
-
-        if (cmdName ~= "") then
-            DEFAULT_CHAT_FRAME:AddMessage("Turns Identity off, but all settings are preserved. No labels will be", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("sent. Identity is turned on by default.", 0.4, 0.4, 1.0);
+            chatInfo = ChatTypeInfo[channel.type]
         end
     end
-
-    if (cmdName == "" or cmdName == "main") then
-        DEFAULT_CHAT_FRAME:AddMessage("/id main <name> - Sets the name of your main", 0.4, 0.4, 1.0);
-
-        if (cmdName ~= "") then
-            DEFAULT_CHAT_FRAME:AddMessage("Sets the main character's Identity. This is the name used for all", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("enabled channels except Raid and Party. If no main name is specified,", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("the name is cleared.", 0.4, 0.4, 1.0);
-        end
+    
+    local chatColor = string.format("%02X", chatInfo.r * 255) .. string.format("%02X", chatInfo.g * 255) .. string.format("%02X", chatInfo.b * 255)    
+    
+    if(chatInfo.colorNameByClass) then
+        local classDisplayName, class, classID = UnitClass("player")
+        
+        playerName = "|cFF" .. classColors[classID] .. playerName .. "|cFF" ..chatColor
     end
-
-    if (cmdName == "" or cmdName == "nick") then
-        DEFAULT_CHAT_FRAME:AddMessage("/id nick <name> - Sets your group short name", 0.4, 0.4, 1.0);
-
-        if (cmdName ~= "") then
-            DEFAULT_CHAT_FRAME:AddMessage("Sets the nickname Identity. This is the name used in Raid,", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("Instance, and Party, if enabled. If no nickname is specified, the", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("name is cleared.", 0.4, 0.4, 1.0);
-        end
-    end
-
-    if (cmdName == "" or cmdName == "enable" or cmdName == "disable") then
-        DEFAULT_CHAT_FRAME:AddMessage("/id enable <channels> - These channels will print your Identity", 0.4, 0.4, 1.0);
-
-        if (cmdName ~= "") then
-            DEFAULT_CHAT_FRAME:AddMessage("Enables Identity for the specified space-separated channels.", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("  Valid channel identifiers:", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("    guild, g", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("    officer, o", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("    raid, r", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("    instance, i", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("    party, p", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("    whisper, w, tell, t", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("    1-10", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage(" ", 0.4, 0.4, 1.0);
-        end
-
-        DEFAULT_CHAT_FRAME:AddMessage("/id disable <channels> - These channels will not print your Identity", 0.4, 0.4, 1.0);
-
-        if (cmdName ~= "") then
-            DEFAULT_CHAT_FRAME:AddMessage("Disables Identity for the specified space-separated channels.", 0.4, 0.4, 1.0);
-        end
-    end
-
-    if (cmdName == "" or cmdName == "message") then
-        DEFAULT_CHAT_FRAME:AddMessage("/id message normal|update|silent - Toggles the exhibition of the loaded message", 0.4, 0.4, 1,0);
-
-        if (cmdName ~= "") then
-            DEFAULT_CHAT_FRAME:AddMessage("Sets how Identity loaded message displays. If no option is specified", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("it change to silent if normal or update, and to normal if silent.", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("The default value is normal.", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("  normal: Identity loaded message display every time the addon is loaded", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("  update: Identity only shows the message when a new version is loaded", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("  silent: Identity never shows the loaded message", 0.4, 0.4, 1.0);
-        end
-    end
-
-    if (cmdName == "" or cmdName == "format") then
-        DEFAULT_CHAT_FRAME:AddMessage("/id format <string> - Sets the string used to display your Identity.", 0.4, 0.4, 1.0);
-
-        if (cmdName ~= "") then
-            DEFAULT_CHAT_FRAME:AddMessage("Sets the string used to display your Identity. The default is [%s].", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("The default can be restored by specifying no format string.", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("Valid tokens for use in the format: ", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("   %s -> Will be replaced by the appropriate identity", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("   %z -> Will be replaced by the name of the current zone", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("   %l -> Will be replaced by the character level", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("   %g -> Will be replaced by the character guild", 0.4, 0.4, 1.0);
-            DEFAULT_CHAT_FRAME:AddMessage("   %r -> Will be replaced by the realm name.", 0.4, 0.4, 1.0);
-        end
-    end
-
-    if (cmdName == "" or cmdName == "reset") then
-        DEFAULT_CHAT_FRAME:AddMessage("/id reset - Clears your Identity settings", 0.4, 0.4, 1.0);
-    end
-
-    DEFAULT_CHAT_FRAME:AddMessage(" ", 0.4, 0.4, 1.0);
-    DEFAULT_CHAT_FRAME:AddMessage("----", 1.0, 1.0, 1.0);
-end
-
--- Enables/disables Identity
-function Identity_Enable(enable)
-    if (enable) then
-        DEFAULT_CHAT_FRAME:AddMessage("Identity enabled", 0.4, 1.0, 0.4);
-    else
-        DEFAULT_CHAT_FRAME:AddMessage("Identity disabled", 1.0, 0.4, 0.4);
-    end
-    IdentitySettings.Enabled = enable;
-end
-
--- Checks the specified name
-function Identity_CheckName(old, new)
-    if (IdentitySettings.Debug) then Identity_Debug("entered Identity_CheckName"); end
-    if (IdentitySettings.Debug) then Identity_Debug("old name: " .. old); end
-    if (IdentitySettings.Debug) then Identity_Debug("new name: " .. new); end
-
-    -- Check that a new name specified
-    if (not new) then
-        -- Keep the existing name
-        return old;
-    elseif (new == "") then
-        -- Clear the name
-        DEFAULT_CHAT_FRAME:AddMessage("Cleared name", 0.4, 0.4, 1.0);
-        return new;
-    else
-        -- Update the name
-        DEFAULT_CHAT_FRAME:AddMessage("Name changed from '" .. old .. "' to '" .. new .. "'", 0.4, 0.4, 1.0);
-        return new;
-    end
-end
-
--- Enables/disables a list of channels
-function Identity_EnableChannels(channels, enable)
-    -- Check that a channel list was specified
-    if (not channels or channels == "") then
-        DEFAULT_CHAT_FRAME:AddMessage("No Identity channels specified", 1.0, 0.4, 0.4);
-        return;
-    end;
-
-    -- Iterate over the list of channels
-    for channel in string.gmatch(channels, "%w+") do
-        Identity_EnableChannel(channel, enable);
-    end
-end
-
--- Enables/disables the specified channel
-function Identity_EnableChannel(channel, enable)
-    if (IdentitySettings.Debug) then Identity_Debug("entered Identity_EnableChannel"); end
-    if (IdentitySettings.Debug) then Identity_Debug("channel: " .. channel); end
-    if (IdentitySettings.Debug) then if enable then Identity_Debug("enable: true"); else Identity_Debug("enable: false"); end end
-
-    -- Update the channel setting and get the channel's canonical name
-    local channelName = "";
-    if (channel == "g" or channel == "guild") then
-        channelName = "Guild";
-        IdentitySettings.Channels.Guild = enable;
-    elseif (channel == "o" or channel == "officer") then
-        channelName = "Officer";
-        IdentitySettings.Channels.Officer = enable;
-    elseif (channel == "r" or channel == "raid") then
-        channelName = "Raid";
-        IdentitySettings.Channels.Raid = enable;
-    elseif (channel == "i" or channel == "instance") then
-        channelName = "Instance";
-        IdentitySettings.Channels.Instance = enable;
-    elseif (channel == "p" or channel == "party") then
-        channelName = "Party";
-        IdentitySettings.Channels.Party = enable;
-    elseif (channel == "w" or channel == "whisper" or channel == "t" or channel == "tell") then
-        channelName = "Whispers";
-        IdentitySettings.Channels.Tell = enable;
-    elseif (string.match(channel, "%d+")) then
-        channelName = channel;
-        local chanID = string.format("C%02d", channel + 0);
-        IdentitySettings.Channels[chanID] = enable;
-    else
-        DEFAULT_CHAT_FRAME:AddMessage("Invalid Identity channel '" .. channel .. "'", 1.0, 0.4, 0.4);
-    end
-
-    -- Print the channel's new state
-    if (enable) then
-        DEFAULT_CHAT_FRAME:AddMessage("Channel " .. channelName .. " enabled", 0.4, 1.0, 0.4);
-    else
-        DEFAULT_CHAT_FRAME:AddMessage("Channel " .. channelName .. " disabled", 1.0, 0.4, 0.4);
-    end
-end
-
--- Enables/disables message display
-function Identity_SetMessageDisplay(options)
-    if (options == "normal") then
-        DEFAULT_CHAT_FRAME:AddMessage("Loaded message display enabled", 0.4, 0.4, 1.0);
-    elseif (options == "silent") then
-        DEFAULT_CHAT_FRAME:AddMessage("Loaded message display disabled", 0.4, 0.4, 1.0);
-    elseif (options == "update") then
-        DEFAULT_CHAT_FRAME:AddMessage("Loaded message display enabled only on version change", 0.4, 0.4, 1.0);
-    elseif (options == "") then
-        if (IdentitySettings.DisplayMessage == "silent") then
-            DEFAULT_CHAT_FRAME:AddMessage("Loaded message display enabled", 0.4, 0.4, 1.0);
-            IdentitySettings.DisplayMessage = "normal";
-        else
-            DEFAULT_CHAT_FRAME:AddMessage("Loaded message display disabled", 0.4, 0.4, 1.0);
-            IdentitySettings.DisplayMessage = "silent";
-        end
-
-        return;
-    else
-        DEFAULT_CHAT_FRAME:AddMessage("Invalid Identity message argument '" .. options .. "'", 1.0, 0.4, 0.4);
-        return;
-    end
-
-    IdentitySettings.DisplayMessage = options;
-end
-
--- Sets the format string to be used for name display
-function Identity_SetFormat(options)
-    -- Check for no argument
-    if (not options or options == "") then
-        IdentitySettings.Format = "[%s]";
-        DEFAULT_CHAT_FRAME:AddMessage("Reset format to '" .. IdentitySettings.Format .. "'", 0.4, 0.4, 1.0);
-        return;
-    end
-
-    DEFAULT_CHAT_FRAME:AddMessage("Changed format to '" .. options .. "'", 0.4, 0.4, 1.0);
-
-    IdentitySettings.Format = options;
-end
-
--- Concatenates of list of enabled channels for the main character's name
-function Identity_GetMainChannels()
-    local channels = "";
-    if (IdentitySettings.Channels.Guild) then
-        channels = channels .. "Guild ";
-    end
-    if (IdentitySettings.Channels.Officer) then
-        channels = channels .. "Officer ";
-    end
-    if (IdentitySettings.Channels.Tell) then
-        channels = channels .. "Whisper ";
-    end
-    for i = 1, 10 do
-        local chanID = string.format("C%02d", i);
-        if (IdentitySettings.Channels[chanID]) then
-            channels = channels .. i .. " ";
-        end
-    end
-    return channels;
-end
-
--- Concatenates of list of enabled channels for the character's nickname
-function Identity_GetNickChannels()
-    local channels = "";
-    if (IdentitySettings.Channels.Raid) then
-        channels = channels .. "Raid ";
-    end
-    if (IdentitySettings.Channels.Instance) then
-        channels = channels .. "Instance ";
-    end
-    if (IdentitySettings.Channels.Party) then
-        channels = channels .. "Party ";
-    end
-    return channels;
-end
-
------
--- Obsolete commands
------
-
--- Enables/disables zone display
-function Identity_SetZoneDisplay(options)
-    DEFAULT_CHAT_FRAME:AddMessage("Attention: the zone command is obsolete use %z in the format instead.", 1.0, 0.4, 0.4);
+    
+    playerName = string.gsub(getFormat, "%%s", "[" .. playerName .. "]")
+    
+    return "|cFF" ..chatColor .. timeString .. playerName .. name .. " " .. L["options.channels.preview.message"]
 end
