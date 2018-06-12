@@ -10,3 +10,6 @@ externals:
         tag: latest
 
 manual-changelog: changelog.txt
+
+ignore:
+    - .gitignore
