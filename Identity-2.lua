@@ -475,18 +475,16 @@ end
 
 --Checks if its a day to have fun
 function Identity2:IsDayForFun()
-    local havingFun
+    local havingFun = "NO"
     local dtime = date("*t")
     
     --checks if Fun mode is turned on and only replaces identity some % of the time so its not spammy
     if (self.db.profile.fun) then
-        if (dtime["day"] == 1 and dtime["month"] == 4  and math.random(100) >= 60) then
+        if (dtime["day"] == 1 and dtime["month"] == 4  and math.random(100) >= 85) then
             havingFun = "PRANK"
         elseif (dtime["day"] == 25 and dtime["month"] == 12  and math.random(100) == 100) then
             havingFun = "HOHOHO"
         end
-    else
-        havingFun = "NO"
     end
     
     return havingFun
