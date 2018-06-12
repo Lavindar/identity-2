@@ -3,7 +3,4 @@ externals:
         url: svn://repos.wowace.com/wow/ace3/trunk
         tag: latest
 
-ignore:
-    - CurseForge # ignore the CurseForge folder
-
-manual-changelog: CurseForge/changelog.txt
+manual-changelog: changelog.txt
