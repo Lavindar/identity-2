@@ -1,5 +1,5 @@
 externals:
-    libs/AceAddon-3.0
+    libs/AceAddon-3.0:
         url: svn://repos.wowace.com/wow/ace3/trunk
         tag: latest
 
