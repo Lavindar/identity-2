@@ -25,17 +25,26 @@ if L then
     L["options.identity.desc"] = "Sets the string used as your Identity"
     L["options.default_channels.name"] = "Default Channels"
     L["options.custom_channels.name"] = "Custom Channels"
+    L["options.communities.name"] = "Communities"
     L["options.custom_channels.add.name"] = "Add Channel"
     L["options.custom_channels.add.desc"] = "Type the name of the channel to add and press Okay"
     L["options.custom_channels.error.empty"] = "Channel name must not be empty"
     L["options.custom_channels.error.already_exists"] = "A Channel with this name is already registered"
+    L["options.communities.error.empty"] = "Community name must not be empty"
+    L["options.communities.error.already_exists"] = "A Community with this name is already registered"
+    L["options.communities.add.name"] = "Add Community"
+    L["options.communities.add.desc"] = "Type the name of the community to add and press Okay"
+    L["options.communities.no_streams"] = "No channels on this community at the moment"
     L["options.channels.enable.name"] = "Enable Channel"
     L["options.channels.enable.desc"] = function(channel) return "Enable/Disable " .. channel end
+    L["options.community.enable.name"] = "Enable Community"
+    L["options.community.enable.desc"] = function(community) return "Enable/Disable " .. community end
     L["options.channels.identity.name"] = "Channel Identity"
     L["options.channels.identity.desc"] = function(channel, main_identity) return "Sets a string to use in " .. channel .. " instead of " .. main_identity end
     L["options.channels.preview_header"] = "Identity Preview"
     L["options.channels.preview.message"] = "This is a preview of the current Identity"
     L["options.channels.remove.name"] = "Remove Channel"
+    L["options.communities.remove.name"] = "Remove Community"
     
     L["profiles.name"] = "Profiles"
     

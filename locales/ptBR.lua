@@ -27,18 +27,27 @@ if L then
     L["options.identity.desc"] = "Define o texto usado como sua Identidade"
     L["options.default_channels.name"] = "Canais Padrões"
     L["options.custom_channels.name"] = "Canais Customizados"
+    L["options.communities.name"] = "Comunidades"
     L["options.custom_channels.add.name"] = "Adiciona Canal"
     L["options.custom_channels.add.desc"] = "Digite o nome do canal a ser adicionado e pressione Ok"
+    L["options.communities.add.name"] = "Adiciona Comunidade"
+    L["options.communities.add.desc"] = "Digite o nome da comunidade a ser adicionada e pressione Ok"
+    L["options.communities.no_streams"] = "Nenhum canal nesta comunidade no momento"
     L["options.custom_channels.error.empty"] = "Nome do Canal não pode ser em branco"
     L["options.custom_channels.error.already_exists"] = "Um Canal com esse nome já está cadastrado"
+    L["options.communities.error.empty"] = "Nome da Comunidade não pode ser em branco"
+    L["options.communities.error.already_exists"] = "Uma Comunidade com esse nome já está cadastrada"
     L["options.custom_channels.name_field.name"] = "Nome do Canal"
     L["options.channels.enable.name"] = "Ativar Canal"
     L["options.channels.enable.desc"] = function(channel) return "Ativa/Desativa " .. channel end
+    L["options.community.enable.name"] = "Ativar Comunidade"
+    L["options.community.enable.desc"] = function(community) return "Ativa/Desativa " .. community end
     L["options.channels.identity.name"] = "Identidade no Canal"
     L["options.channels.identity.desc"] = function(channel, main_identity) return "Define o texto para uso em " .. channel .. " no lugar de " .. main_identity end
     L["options.channels.preview_header"] = "Prévia da Identidade"
     L["options.channels.preview.message"] = "Isto é uma prévia da Identidade atual"
-    L["options.channels.remove.name"] = "Remove Canal"
+    L["options.channels.remove.name"] = "Remover Canal"
+    L["options.communities.remove.name"] = "Remover Comunidade"
     
     L["profiles.name"] = "Perfis"
     
