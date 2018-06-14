@@ -32,7 +32,7 @@ if L then
     L["options.custom_channels.add.desc"] = "Digite o nome do canal a ser adicionado e pressione Ok"
     L["options.communities.add.name"] = "Adiciona Comunidade"
     L["options.communities.add.desc"] = "Digite o nome da comunidade a ser adicionada e pressione Ok"
-    L["options.communities.no_streams"] = "Nenhum canal nesta comunidade no momento"
+    L["options.communities.no_streams"] = "Nenhum canal nesta comunidade no momento ou o personagem não está nesta comunidade"
     L["options.custom_channels.error.empty"] = "Nome do Canal não pode ser em branco"
     L["options.custom_channels.error.already_exists"] = "Um Canal com esse nome já está cadastrado"
     L["options.communities.error.empty"] = "Nome da Comunidade não pode ser em branco"

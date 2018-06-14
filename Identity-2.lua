@@ -260,12 +260,18 @@ function Identity2:OnInitialize()
     
     self:LoadCommunities()
     
-    self:ConfigTableChange()
+    LibStub("AceConfig-3.0"):RegisterOptionsTable("Identity2", options)
+    generalOptions = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Identity2", "Identity 2")
+    
+    LibStub("AceConfig-3.0"):RegisterOptionsTable("Identity2 Profiles", LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db))
+    profilesOptions = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Identity2 Profiles", L["profiles.name"], "Identity 2")
     
     self:RegisterChatCommand("id", "SlashProcessor")
     self:RegisterChatCommand("identity", "SlashProcessor")
 
     function self:SlashProcessor(input)
+        self:RefreshConfig()
+    
         InterfaceOptionsFrame_OpenToCategory(generalOptions)
 		InterfaceOptionsFrame_OpenToCategory(profilesOptions)
         InterfaceOptionsFrame_OpenToCategory(generalOptions)
@@ -276,6 +282,7 @@ function Identity2:OnInitialize()
     self:RegisterEvent("CLUB_STREAM_ADDED", "eventHandler")
     self:RegisterEvent("CLUB_STREAM_UPDATED", "eventHandler")
     self:RegisterEvent("CLUB_STREAM_REMOVED", "eventHandler")
+    self:RegisterEvent("CLUB_STREAM_SUBSCRIBED", "eventHandler")
     
     
     if(self.db.global.version ~= defaults.global.version) then
@@ -287,22 +294,15 @@ function Identity2:OnInitialize()
 end
 
 function Identity2:eventHandler(event, ...)
-    if(event == "CLUB_UPDATED" or event == "CLUB_STREAM_ADDED" or event == "CLUB_STREAM_UPDATED" or event == "CLUB_STREAM_REMOVED" or event == "CLUB_ADDED") then
-        self:LoadCommunities()
+    if(event == "CLUB_ADDED" or event == "CLUB_UPDATED" or event == "CLUB_STREAM_ADDED" or event == "CLUB_STREAM_UPDATED" or event == "CLUB_STREAM_REMOVED" or event == "CLUB_STREAM_SUBSCRIBED") then
+        self:RefreshConfig()
     end
-end
-
-function Identity2:ConfigTableChange()
-    LibStub("AceConfig-3.0"):RegisterOptionsTable("Identity2", options)
-    generalOptions = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Identity2", "Identity 2")
-    
-    LibStub("AceConfig-3.0"):RegisterOptionsTable("Identity2 Profiles", LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db))
-    profilesOptions = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Identity2 Profiles", L["profiles.name"], "Identity 2")
 end
 
 function Identity2:RefreshConfig()
     self:LoadDefaultChannels()
     self:LoadCustomChannels()
+    self:LoadCommunities()
     
     LibStub("AceConfigRegistry-3.0"):NotifyChange("Identity2")
 end
@@ -503,7 +503,7 @@ function Identity2:LoadCommunities()
         if(self.db.profile.channels.communities[v.clubId]) then
             self.db.profile.channels.communities[v.clubId].name = v.name
             
-            local streams = {}
+            local i, s, streams = nil, nil, {}
             
             for i, s in pairs(C_Club.GetStreams(v.clubId)) do
                 streams[s.streamId] = s
@@ -522,12 +522,6 @@ function Identity2:LoadCommunities()
                     }
                 end
             end
-            
-            for i, s in pairs(self.db.profile.channels.communities[v.clubId].streams) do
-                if(streams[s.streamId] == nil) then
-                    self.db.profile.channels.communities[v.clubId].streams[s.streamId] = nil
-                end
-            end
         else
             communities_list[v.clubId] = v.name
         end
@@ -543,6 +537,8 @@ function Identity2:LoadCommunities()
             values = communities_list
         }
     }
+    
+    local clubId, community
     
     for clubId, community in pairs(self.db.profile.channels.communities) do
         local community_fields = {
@@ -569,63 +565,73 @@ function Identity2:LoadCommunities()
             }
         }
         
-        if(table.getn(community.streams) > 0) then
+        if(table.getn(community.streams) > 0 and C_Club.GetClubInfo(clubId) ~= nil) then
+            local i, s, streams = nil, nil, {}
+            
+            for i, s in pairs(C_Club.GetStreams(clubId)) do
+                streams[s.streamId] = s
+            end
+        
+            local streamId, stream
+            
             for streamId, stream in pairs(community.streams) do
-                stream_fields = {
-                    name = stream.name,
-                    type = "group",
-                    order = stream.order,
-                    args = {
-                        header = {
-                            name = stream.name,
-                            type = "header",
-                            order = 0
-                        },
-                        enable = {
-                            name = L["options.channels.enable.name"],
-                            desc = L["options.channels.enable.desc"](stream.name),
-                            type = "toggle",
-                            order = 1,
-                            set = function(info, value) stream.enabled = value end,
-                            get = function(info) return stream.enabled end
-                        },
-                        identity = {
-                            name = L["options.channels.identity.name"],
-                            desc = L["options.channels.identity.desc"](stream.name, self.db.profile.identity),
-                            type = "input",
-                            order = 3,
-                            width = "full",
-                            set = function(info, value) stream.identity = value end,
-                            get = function(info) return stream.identity end,
-                            multiline = false
-                        },
-                        preview_header = {
-                            name = L["options.channels.preview_header"],
-                            type = "header",
-                            order = 4
-                        },
-                        preview = {
-                            name = function(info) return self:PreviewMessage(stream) end,
-                            type = "description",
-                            order = 5,
-                            fontSize = "medium"
+                if(streams[streamId]) then
+                    stream_fields = {
+                        name = stream.name,
+                        type = "group",
+                        order = stream.order,
+                        args = {
+                            header = {
+                                name = stream.name,
+                                type = "header",
+                                order = 0
+                            },
+                            enable = {
+                                name = L["options.channels.enable.name"],
+                                desc = L["options.channels.enable.desc"](stream.name),
+                                type = "toggle",
+                                order = 1,
+                                set = function(info, value) stream.enabled = value end,
+                                get = function(info) return stream.enabled end
+                            },
+                            identity = {
+                                name = L["options.channels.identity.name"],
+                                desc = L["options.channels.identity.desc"](stream.name, self.db.profile.identity),
+                                type = "input",
+                                order = 3,
+                                width = "full",
+                                set = function(info, value) stream.identity = value end,
+                                get = function(info) return stream.identity end,
+                                multiline = false
+                            },
+                            preview_header = {
+                                name = L["options.channels.preview_header"],
+                                type = "header",
+                                order = 4
+                            },
+                            preview = {
+                                name = function(info) return self:PreviewMessage(stream) end,
+                                type = "description",
+                                order = 5,
+                                fontSize = "medium"
+                            }
                         }
                     }
-                }
-                
-                community_fields.args["" .. stream.streamId] = stream_fields
+                    
+                    community_fields.args["" .. stream.streamId] = stream_fields
+                end
             end
         else
             community_fields.args.no_streams_header = {
                 name = "",
                 type = "header",
-                order = 0
+                order = 2
             }
             
             community_fields.args.no_streams_message = {
                 name = L["options.communities.no_streams"],
                 type = "description",
-                order = 1,
+                order = 3,
                 fontSize = "medium"
             }
         end
@@ -854,9 +860,9 @@ function Identity2:PreviewMessage(channel)
     elseif(channel.type == "COMMUNITY_STREAM") then
         local streamType = C_Club.GetStreamInfo(channel.clubId, channel.streamId).streamType
         
-        if(streamType == 1) then
+        if(streamType == Enum.ClubStreamType.Guild) then
             getFormat = CHAT_GUILD_GET
-        elseif(streamType == 2) then
+        elseif(streamType == Enum.ClubStreamType.Officer) then
             getFormat = CHAT_OFFICER_GET
         else
             getFormat = CHAT_CHANNEL_GET
@@ -874,9 +880,9 @@ function Identity2:PreviewMessage(channel)
         elseif(channel.type == "COMMUNITY_STREAM") then
             local streamType = C_Club.GetStreamInfo(channel.clubId, channel.streamId).streamType
         
-            if(streamType == 1) then
+            if(streamType == Enum.ClubStreamType.Guild) then
                 chatInfo = ChatTypeInfo["GUILD"]
-            elseif(streamType == 2) then
+            elseif(streamType == Enum.ClubStreamType.Officer) then
                 chatInfo = ChatTypeInfo["OFFICER"]
             else
                 chatInfo = ChatTypeInfo[self:findCustomChannel("Community:"..channel.clubId..":"..channel.streamId)]
@@ -891,7 +897,17 @@ function Identity2:PreviewMessage(channel)
     if(chatInfo.colorNameByClass) then
         local classDisplayName, class, classID = UnitClass("player")
         
-        playerName = "|cFF" .. classColors[classID] .. playerName .. "|cFF" ..chatColor
+        local classInfo = C_CreatureInfo.GetClassInfo(classID);
+		
+        local classColor = ""
+        
+        if classInfo then
+			classColor = RAID_CLASS_COLORS[classInfo.classFile].colorStr;
+		else
+            classColor = "FF" .. classColors[classID]
+        end
+        
+        playerName = "|c" .. classColor .. playerName .. "|cFF" ..chatColor
     end
     
     playerName = string.gsub(getFormat, "%%s", "[" .. playerName .. "]")

@@ -34,7 +34,7 @@ if L then
     L["options.communities.error.already_exists"] = "A Community with this name is already registered"
     L["options.communities.add.name"] = "Add Community"
     L["options.communities.add.desc"] = "Type the name of the community to add and press Okay"
-    L["options.communities.no_streams"] = "No channels on this community at the moment"
+    L["options.communities.no_streams"] = "No channels on this community at the moment or the character is not in this community"
     L["options.channels.enable.name"] = "Enable Channel"
     L["options.channels.enable.desc"] = function(channel) return "Enable/Disable " .. channel end
     L["options.community.enable.name"] = "Enable Community"
