@@ -172,10 +172,6 @@ end
 function Identity2:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("IdentityDB", defaults, true)
     
-    self.db.RegisterCallback(self, "OnProfileChanged", "RefreshConfig")
-    self.db.RegisterCallback(self, "OnProfileCopied", "RefreshConfig")
-    self.db.RegisterCallback(self, "OnProfileReset", "RefreshConfig")
-    
     if(IdentitySettings) then
         self:Migration()
     end
@@ -255,6 +251,10 @@ function Identity2:OnInitialize()
     
     self:RegisterChatCommand("id", "SlashProcessor")
     self:RegisterChatCommand("identity", "SlashProcessor")
+    
+    self.db.RegisterCallback(self, "OnProfileChanged", "RefreshConfig")
+    self.db.RegisterCallback(self, "OnProfileCopied", "RefreshConfig")
+    self.db.RegisterCallback(self, "OnProfileReset", "RefreshConfig")
 
     function self:SlashProcessor(input)
         InterfaceOptionsFrame_OpenToCategory(generalOptions)
