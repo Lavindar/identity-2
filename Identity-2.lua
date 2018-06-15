@@ -173,10 +173,6 @@ end
 function Identity2:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("IdentityDB", defaults, true)
     
-    self.db.RegisterCallback(self, "OnProfileChanged", "RefreshConfig")
-    self.db.RegisterCallback(self, "OnProfileCopied", "RefreshConfig")
-    self.db.RegisterCallback(self, "OnProfileReset", "RefreshConfig")
-    
     if(IdentitySettings) then
         self:Migration()
     end
@@ -284,6 +280,9 @@ function Identity2:OnInitialize()
     self:RegisterEvent("CLUB_STREAM_REMOVED", "eventHandler")
     self:RegisterEvent("CLUB_STREAM_SUBSCRIBED", "eventHandler")
     
+    self.db.RegisterCallback(self, "OnProfileChanged", "RefreshConfig")
+    self.db.RegisterCallback(self, "OnProfileCopied", "RefreshConfig")
+    self.db.RegisterCallback(self, "OnProfileReset", "RefreshConfig")
     
     if(self.db.global.version ~= defaults.global.version) then
         self.db.global.version = defaults.global.version
