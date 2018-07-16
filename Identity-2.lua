@@ -695,40 +695,44 @@ function Identity2:IsDayForFun()
 end
 
 function Identity2:AlterMessage(msg, channel)
-    if(channel.enabled) then
-        local identity = channel.identity
-        
-        if(identity == "") then
-            identity = self.db.profile.identity
-        end
-        
-        local function LocalReplaceToken(token)
-            local value = ""
+    if(channel) then
+        if(channel.enabled) then
+            local identity = channel.identity
             
-            if (token == "s") then
-                local havingFun = self:IsDayForFun()
-        
-                if(havingFun == "NO") then
-                    value = identity
-                else
-                    value = self:FunTime(identity, havingFun)
-                end
-            elseif (token == "l") then
-                value = UnitLevel("player")
-            elseif (token == "z") then
-                value = GetZoneText()
-            elseif (token == "r") then
-                value = GetRealmName()
-            elseif (token == "g") then
-                value = GetGuildInfo("player")
-            else
-                return nil
+            if(identity == "") then
+                identity = self.db.profile.identity
             end
+            
+            local function LocalReplaceToken(token)
+                local value = ""
+                
+                if (token == "s") then
+                    local havingFun = self:IsDayForFun()
+            
+                    if(havingFun == "NO") then
+                        value = identity
+                    else
+                        value = self:FunTime(identity, havingFun)
+                    end
+                elseif (token == "l") then
+                    value = UnitLevel("player")
+                elseif (token == "z") then
+                    value = GetZoneText()
+                elseif (token == "r") then
+                    value = GetRealmName()
+                elseif (token == "g") then
+                    value = GetGuildInfo("player")
+                else
+                    return nil
+                end
 
-            return value
+                return value
+            end
+            
+            return string.gsub(self.db.profile.format, "%%(%w+)", LocalReplaceToken) .. " " .. msg
+        else
+            return msg
         end
-        
-        return string.gsub(self.db.profile.format, "%%(%w+)", LocalReplaceToken) .. " " .. msg
     else
         return msg
     end
