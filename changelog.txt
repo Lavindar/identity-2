@@ -1,3 +1,7 @@
+====Version 4.0.2
+
+TOC bump
+
 ====Version 4.0.1
 
 Aparently I rewrote the whole addon and still forgot to change the TOC version :)
