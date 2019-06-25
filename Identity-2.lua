@@ -4,7 +4,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale("Identity2", true)
 
 local defaults = {
     global = {
-        version = "4.0.2"
+        version = "4.0.3"
     },
     profile = {
         enabled = true,
