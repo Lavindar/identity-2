@@ -33,7 +33,7 @@ will look like this:
 ## Contact
 
 Lavindar
-alacre@outlook.com
+philipi_will@hotmail.com
 
 Agaor
 Guild: of The Queue 
@@ -41,7 +41,7 @@ Server: Nesingwary-US
 
 ## Credits
 
-Currently maintained by Lavindar (alacre@outlook.com)
+Currently maintained by Lavindar (philipi_will@hotmail.com)
 Guild: of The Queue
 Server: Nesingwary-US
 
