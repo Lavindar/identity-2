@@ -4,7 +4,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale("Identity2", true)
 
 local defaults = {
     global = {
-        version = "4.0.3"
+        version = "4.1.0"
     },
     profile = {
         enabled = true,
@@ -60,6 +60,12 @@ local defaults = {
                 identity = "",
                 type = "YELL",
                 order = 7
+            },
+            ["BN_WHISPER"] = {
+                enabled = false,
+                identity = "",
+                type = "BN_WHISPER",
+                order = 8
             },
             customs = {},
             communities = {}
@@ -789,6 +795,19 @@ function Identity2:C_Club_SendMessage(clubId, streamId, message)
 end
 
 Identity2:RawHook(C_Club, "SendMessage", "C_Club_SendMessage", true)
+
+function Identity2:BNSendWhisper(presenceID, message)
+    if(self.db.profile.enabled) then
+        if(self.db.profile.channels["BN_WHISPER"]) then
+            message = Identity2:AlterMessage(message, self.db.profile.channels["BN_WHISPER"])
+        end
+    end
+
+    -- call the original function through the self.hooks table
+    self.hooks["BNSendWhisper"](presenceID, message)
+end
+
+Identity2:RawHook("BNSendWhisper", true)
 
 function Identity2:findCustomChannel(name)
     local function GetChannelListAsTable(...)

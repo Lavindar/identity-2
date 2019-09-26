@@ -1,3 +1,8 @@
+====Version 4.1.0
+
+* TOC bump
+* Added support for Battle.net Whispers
+
 ====Version 4.0.3
 
 TOC bump
