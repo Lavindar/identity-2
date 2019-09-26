@@ -2,9 +2,7 @@ local L = LibStub("AceLocale-3.0"):NewLocale("Identity2", "ptBR", false)
 
 if L then
     L["migration.created_new_profile"] = function(profile_name) return "Novo Perfil |cFFC6A15B" .. profile_name .. "|r criado pela migração de versão antiga" end
-    L["migration.finished"] =
-    
-    function(created_new_profile) local text = "Migração das configurações desta personagem concluída"; if(created_new_profile) then text = text .. ". Um novo perfil foi criado por razão de conflito com o perfil ativo" end return text end
+    L["migration.finished"] = function(created_new_profile) local text = "Migração das configurações desta personagem concluída"; if(created_new_profile) then text = text .. ". Um novo perfil foi criado por razão de conflito com o perfil ativo" end return text end
     
     L["channel.GUILD.name"] = "Bate-papo da guilda"
     L["channel.OFFICER.name"] = "Bate-papo de oficiais"
@@ -14,6 +12,7 @@ if L then
     L["channel.WHISPER.name"] = "Sussurrar"
     L["channel.SAY.name"] = "Dizer"
     L["channel.YELL.name"] = "Gritar"
+    L["channel.BN_WHISPER.name"] = "Sussurro da Battle.net"
     
     L["options.name"] = "Opções Gerais"
     L["options.version.name"] = function(version) return "Identity 2 versão " .. version end
@@ -27,27 +26,26 @@ if L then
     L["options.identity.desc"] = "Define o texto usado como sua Identidade"
     L["options.default_channels.name"] = "Canais Padrões"
     L["options.custom_channels.name"] = "Canais Customizados"
-    L["options.communities.name"] = "Comunidades"
     L["options.custom_channels.add.name"] = "Adiciona Canal"
     L["options.custom_channels.add.desc"] = "Digite o nome do canal a ser adicionado e pressione Ok"
+    L["options.custom_channels.error.empty"] = "Nome do Canal não pode ser em branco"
+    L["options.custom_channels.error.already_exists"] = "Um Canal com esse nome já está cadastrado"
+    L["options.communities.name"] = "Comunidades"
     L["options.communities.add.name"] = "Adiciona Comunidade"
     L["options.communities.add.desc"] = "Digite o nome da comunidade a ser adicionada e pressione Ok"
     L["options.communities.no_streams"] = "Nenhum canal nesta comunidade no momento ou o personagem não está nesta comunidade"
-    L["options.custom_channels.error.empty"] = "Nome do Canal não pode ser em branco"
-    L["options.custom_channels.error.already_exists"] = "Um Canal com esse nome já está cadastrado"
     L["options.communities.error.empty"] = "Nome da Comunidade não pode ser em branco"
     L["options.communities.error.already_exists"] = "Uma Comunidade com esse nome já está cadastrada"
-    L["options.custom_channels.name_field.name"] = "Nome do Canal"
-    L["options.channels.enable.name"] = "Ativar Canal"
-    L["options.channels.enable.desc"] = function(channel) return "Ativa/Desativa " .. channel end
+    L["options.communities.remove.name"] = "Remover Comunidade"
     L["options.community.enable.name"] = "Ativar Comunidade"
     L["options.community.enable.desc"] = function(community) return "Ativa/Desativa " .. community end
+    L["options.channels.enable.name"] = "Ativar Canal"
+    L["options.channels.enable.desc"] = function(channel) return "Ativa/Desativa " .. channel end
     L["options.channels.identity.name"] = "Identidade no Canal"
     L["options.channels.identity.desc"] = function(channel, main_identity) return "Define o texto para uso em " .. channel .. " no lugar de " .. main_identity end
     L["options.channels.preview_header"] = "Prévia da Identidade"
     L["options.channels.preview.message"] = "Isto é uma prévia da Identidade atual"
     L["options.channels.remove.name"] = "Remover Canal"
-    L["options.communities.remove.name"] = "Remover Comunidade"
     
     L["profiles.name"] = "Perfis"
     
