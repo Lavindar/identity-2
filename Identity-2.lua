@@ -4,7 +4,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale("Identity2", true)
 
 local defaults = {
     global = {
-        version = "4.1.0"
+        version = "4.2.0"
     },
     profile = {
         enabled = true,
@@ -772,6 +772,9 @@ function Identity2:SendChatMessage(msg, system, language, channel, targetPlayer)
             msg = self:AlterMessage(msg, self.db.profile.channels[system])
         end
     end
+
+    --Makes sure the new string will not be bigger than the max size of 255, if it is, remove characters from the end so it fits.
+    msg = string.sub(msg, 1, 255)
     
     -- call the original function through the self.hooks table
     self.hooks["SendChatMessage"](msg, system, language, channel, targetPlayer)
