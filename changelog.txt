@@ -1,3 +1,8 @@
+====Version 4.2.0
+
+* TOC bump
+* Added a check to avoid sending messages bigger than the maximun alowed after adding the identiy text
+
 ====Version 4.1.0
 
 * TOC bump
