@@ -1,4 +1,4 @@
-## Interface: 90001
+## Interface: 90002
 ## Title: Identity-2
 ## Notes: Configurable chat identifier, auto-labels messages in your channels and whispers with your main's name
 ## Notes-ptBR: Identificador configuravel para bate-papo, automaticamente assina mensagens em seus canais e sussuros com o nome de seu personagem principal
