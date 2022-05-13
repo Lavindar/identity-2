@@ -28,14 +28,14 @@ Any other character will be kept unchanged, for example the format:
 
 will look like this:
 
-[Agaor-Nesingwary]<of The Queue>(100) - Nagrand
+[Wall-Nesingwary]<of The Queue>(100) - Nagrand
 
 ## Contact
 
 Lavindar
 philipi_will@hotmail.com
 
-Agaor
+Wall
 Guild: of The Queue 
 Server: Nesingwary-US
 
