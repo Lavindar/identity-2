@@ -21,6 +21,7 @@ Format
  - %l -> Will be replaced by the character level
  - %g -> Will be replaced by the character guild
  - %r -> Will be replaced by the realm name.
+ - %f -> Will be replaced by the character faction
 
 Any other character will be kept unchanged, for example the format:
 
