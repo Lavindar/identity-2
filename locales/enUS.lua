@@ -21,7 +21,7 @@ if L then
     L["options.fun.name"] = "Fun"
     L["options.fun.desc"] = "Inform Identity if you like to have fun on special days"
     L["options.format.name"] = "Format"
-    L["options.format.desc"] = "Sets the format used to display your Identity. Default: [%s]\n\nValid tokens for use in the format:\n    %s -> Will be replaced by the identity\n\n    %z -> Will be replaced by the name of the current zone\n\n    %l -> Will be replaced by the character level\n\n    %g -> Will be replaced by the character guild\n\n    %r -> Will be replaced by the realm name"
+    L["options.format.desc"] = "Sets the format used to display your Identity. Default: [%s]\n\nValid tokens for use in the format:\n    %s -> Will be replaced by the identity\n\n    %z -> Will be replaced by the name of the current zone\n\n    %l -> Will be replaced by the character level\n\n    %g -> Will be replaced by the character guild\n\n    %r -> Will be replaced by the realm name\n\n    %f -> Will be replaced by the character faction"
     L["options.identity.name"] = "Identity"
     L["options.identity.desc"] = "Sets the string used as your Identity"
     L["options.default_channels.name"] = "Default Channels"
