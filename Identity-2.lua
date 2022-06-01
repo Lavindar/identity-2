@@ -858,6 +858,8 @@ function Identity2:PreviewMessage(channel)
             value = GetRealmName()
         elseif (token == "g") then
             value = GetGuildInfo("player")
+        elseif (token == "f") then
+            value = UnitFactionGroup("player")
         else
             return nil
         end
