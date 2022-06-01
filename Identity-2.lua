@@ -732,6 +732,8 @@ function Identity2:AlterMessage(msg, channel)
                     value = GetRealmName()
                 elseif (token == "g") then
                     value = GetGuildInfo("player")
+                elseif (token == "f") then
+                    value = UnitFactionGroup("player")
                 else
                     return nil
                 end
